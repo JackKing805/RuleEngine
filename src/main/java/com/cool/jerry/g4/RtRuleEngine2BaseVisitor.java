@@ -1,4 +1,4 @@
-// Generated from E:/Projects/JavaProjects/RuleEngine/src/main/resources/RtRuleEngine2.g4 by ANTLR 4.13.1
+// Generated from /Users/vps_developer/Desktop/github/RuleEngine-main/src/main/resources/RtRuleEngine2.g4 by ANTLR 4.13.1
 package com.cool.jerry.g4;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
@@ -124,4 +124,25 @@ public class RtRuleEngine2BaseVisitor<T> extends AbstractParseTreeVisitor<T> imp
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitVariable(RtRuleEngine2Parser.VariableContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitMethod(RtRuleEngine2Parser.MethodContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitParam(RtRuleEngine2Parser.ParamContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitProperties(RtRuleEngine2Parser.PropertiesContext ctx) { return visitChildren(ctx); }
 }

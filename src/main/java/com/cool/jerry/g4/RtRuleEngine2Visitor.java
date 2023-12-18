@@ -1,4 +1,4 @@
-// Generated from E:/Projects/JavaProjects/RuleEngine/src/main/resources/RtRuleEngine2.g4 by ANTLR 4.13.1
+// Generated from /Users/vps_developer/Desktop/github/RuleEngine-main/src/main/resources/RtRuleEngine2.g4 by ANTLR 4.13.1
 package com.cool.jerry.g4;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -120,4 +120,22 @@ public interface RtRuleEngine2Visitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitVariable(RtRuleEngine2Parser.VariableContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link RtRuleEngine2Parser#method}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMethod(RtRuleEngine2Parser.MethodContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link RtRuleEngine2Parser#param}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParam(RtRuleEngine2Parser.ParamContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link RtRuleEngine2Parser#properties}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitProperties(RtRuleEngine2Parser.PropertiesContext ctx);
 }
