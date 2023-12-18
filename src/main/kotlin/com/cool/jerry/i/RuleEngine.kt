@@ -11,7 +11,7 @@ interface RuleEngine {
 
     fun setEnvironment(key:String,value:Any)
 
-    fun setEnvironmentMethod(key: String,method:Method)
+    fun setEnvironmentMethod(key: String,method:InjectMethod)
 
     fun execute(rule:String):Node.Program
 }

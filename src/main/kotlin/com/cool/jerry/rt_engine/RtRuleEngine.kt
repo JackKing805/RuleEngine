@@ -2,22 +2,22 @@ package com.cool.jerry.rt_engine
 
 import com.cool.jerry.g4.RtRuleEngine2Lexer
 import com.cool.jerry.g4.RtRuleEngine2Parser
+import com.cool.jerry.i.InjectMethod
 import com.cool.jerry.i.RuleEngine
 import com.cool.jerry.rt_engine.define.Node
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
-import java.lang.reflect.Method
 
 
 class RtRuleEngine: RuleEngine {
     private val environments = mutableMapOf<String,Any>()
-    private val environmentMethods = mutableMapOf<String,Method>()
+    private val environmentMethods = mutableMapOf<String,InjectMethod>()
 
     override fun setEnvironment(key: String, value: Any) {
         environments[key] = value
     }
 
-    override fun setEnvironmentMethod(key: String, method: Method) {
+    override fun setEnvironmentMethod(key: String, method: InjectMethod) {
         environmentMethods[key] = method
     }
 

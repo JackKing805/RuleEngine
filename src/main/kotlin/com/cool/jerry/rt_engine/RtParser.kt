@@ -1,5 +1,6 @@
 package com.cool.jerry.rt_engine
 
+import com.cool.jerry.i.InjectMethod
 import com.cool.jerry.rt_engine.define.Node
 import com.cool.jerry.rt_engine.exception.*
 import java.lang.StringBuilder
@@ -8,6 +9,7 @@ import kotlin.RuntimeException
 
 class RtParser {
     private val environments = mutableMapOf<String, Any>()
+    private val injectMethods = mutableMapOf<String, InjectMethod>()
 
     fun setEnvironment(key: String, value: Any) {
         environments[key] = value
@@ -18,40 +20,20 @@ class RtParser {
     }
 
 
-    fun setEnvironmentMethod(key: String, method: Method) {
-
+    fun setEnvironmentMethod(key: String, method: InjectMethod) {
+        injectMethods[key] = method
     }
 
-    fun setEnvironmentMethod(map: Map<String, Method>) {
-
+    fun setEnvironmentMethod(map: Map<String, InjectMethod>) {
+        injectMethods.putAll(map)
     }
 
     private fun getEnvironment(key: String): Any {
-        return environments[key] ?: throw NullPointerException("not found value at environment")
+        return environments[key] ?: throw RefNotDefineException(key)
     }
 
     private fun getEnvironmentAsValueResult(key: String): ParseResult.ValueResult<*> {
-        return getEnvironment(key).let {
-            when (it) {
-                is Int,
-                is Long -> {
-                    ParseResult.ValueResult.IntValueResult(it as Long)
-                }
-
-                is String -> {
-                    ParseResult.ValueResult.StringValueResult(it)
-                }
-
-                is Float,
-                is Double -> {
-                    ParseResult.ValueResult.FloatValueResult(it as Double)
-                }
-
-                else -> {
-                    ParseResult.ValueResult.AnyValueResult(it)
-                }
-            }
-        }
+        return getEnvironment(key).toValueResult()
     }
 
     //变量池
@@ -146,28 +128,7 @@ class RtParser {
             }
 
             is Node.Expression.IdExpression.IdRef -> {
-                if (!environments.containsKey(node.name)) {
-                    throw RefNotDefineException(node.name)
-                }
-                when (val value = environments[node.name]!!) {
-                    is Int,
-                    is Long -> {
-                        ParseResult.ValueResult.IntValueResult(value as Long)
-                    }
-
-                    is String -> {
-                        ParseResult.ValueResult.StringValueResult(value)
-                    }
-
-                    is Float,
-                    is Double -> {
-                        ParseResult.ValueResult.FloatValueResult(value as Double)
-                    }
-
-                    else -> {
-                        ParseResult.ValueResult.AnyValueResult(value)
-                    }
-                }
+                getEnvironmentAsValueResult(node.name)
             }
         }
     }
@@ -404,16 +365,34 @@ class RtParser {
                         parseNode(statement, nodeParams)
                     }
 
-                    functionStatement.returnExpression?.let { parseNode(it,nodeParams) }?:ParseResult.NoneResult()
+                    functionStatement.returnExpression?.let { parseNode(it, nodeParams) } ?: ParseResult.NoneResult()
                 } else {
                     //outside function
                     val any = getEnvironment(callIdExpression)
                     val method = any::class.java.declaredMethods.find {
                         it.name == methodIdExpression
-                    }?:throw RefNotDefineMethodException(callIdExpression,methodIdExpression)
-                    //TODO
+                    } ?: throw RefNotDefineMethodException(callIdExpression, methodIdExpression)
+                    val parameters = method.parameters
+                    val nodeParams = params.map {
+                        parseNode(it, emptyList())
+                    }.mapIndexed { index, parseResult ->
+                        Param(parameters[index].name, parseResult)
+                    }
+                        .map {
+                            it.parseResult.getValueResultElseThrow()
+                        }
+                        .mapIndexed { index, parseResult:ParseResult.ValueResult<*> ->
+
+                            println("adsa:${parseResult}")
+                            parseResult.value
+                        }
+                    val result = method.invoke(any, *nodeParams.toTypedArray())
+                    if (result is Unit || result == null) {
+                        ParseResult.NoneResult()
+                    } else {
+                        result.toValueResult()
+                    }
                 }
-                ParseResult.NoneResult()
             }
         }
     }
@@ -441,6 +420,29 @@ class RtParser {
             is ParseResult.ValueResult.IntValueResult -> this
             is ParseResult.ValueResult.StringValueResult -> this
             is ParseResult.Variable -> value.getValueResultElseThrow()
+        }
+    }
+
+
+    private fun Any.toValueResult(): ParseResult.ValueResult<*> {
+        return when (this) {
+            is Int,
+            is Long -> {
+                ParseResult.ValueResult.IntValueResult(this as Long)
+            }
+
+            is String -> {
+                ParseResult.ValueResult.StringValueResult(this)
+            }
+
+            is Float,
+            is Double -> {
+                ParseResult.ValueResult.FloatValueResult(this as Double)
+            }
+
+            else -> {
+                ParseResult.ValueResult.AnyValueResult(this)
+            }
         }
     }
 
