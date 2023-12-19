@@ -1,8 +1,10 @@
 package com.cool.jerry.rt_engine.define
 
+import java.util.UUID
+
 
 sealed class Node(
-    open val source: String
+    open val source: String,
 ) {
     data class Program(
         val nodes: List<Node>,
@@ -14,7 +16,7 @@ sealed class Node(
     }
 
     sealed class Statement(
-        source: String
+        source: String,
     ) : Node(source) {
         data class NewVariableAssignmentStatement(
             val id: Expression.IdExpression,
@@ -43,19 +45,35 @@ sealed class Node(
             val returnExpression: Node?,
             override val source: String
         ) : Statement(source)
+
+        data class IfStatement(
+            val ifCondition:Expression,
+            val ifStatements:List<Statement>,
+            val elseStatements:List<Statement>,
+            override val source: String
+        ):Statement(source)
     }
 
     sealed class Expression(source: String) : Node(source) {
         sealed class IdExpression(open val name: String,source: String) : Expression(source) {
+            abstract fun uniqueName():String
+
             data class Id(
                 override val name: String,
-                override val source: String
-            ) : IdExpression(name,source)
-
+                override val source: String,
+            ) : IdExpression(name,source){
+                override fun uniqueName():String {
+                    return name
+                }
+            }
             data class IdRef(
                 override val name: String,
                 override val source: String
-            ) : IdExpression(name,source)
+            ) : IdExpression(name,source){
+                override fun uniqueName(): String {
+                    throw RuntimeException("idRef not support uniqueName")
+                }
+            }
         }
 
         sealed class TypeExpression(source: String) : Expression(source) {
@@ -73,10 +91,21 @@ sealed class Node(
                 val value: Double,
                 override val source: String
             ) : TypeExpression(source)
+
+            data class BooleanType(
+                val value: Boolean,
+                override val source: String
+            ):TypeExpression(source)
         }
 
+        data class ObjectMethodCallExpression(
+            val callIdExpression: Node,
+            val methodIdExpression: IdExpression.Id,
+            val params: List<Node>,
+            override val source: String
+        ) : Expression(source)
+
         data class MethodCallExpression(
-            val callIdExpression: IdExpression?,
             val methodIdExpression: IdExpression.Id,
             val params: List<Node>,
             override val source: String
@@ -96,5 +125,23 @@ sealed class Node(
             override val source: String
         ) : Expression(source)
 
+
+        data class EqualsExpression(
+            val leftExpression: Expression,
+            val rightExpression: Expression,
+            override val source: String
+        ) : Expression(source)
+
+        data class AndExpression(
+            val leftExpression: Expression,
+            val rightExpression: Expression,
+            override val source: String
+        ) : Expression(source)
+
+        data class OrExpression(
+            val leftExpression: Expression,
+            val rightExpression: Expression,
+            override val source: String
+        ) : Expression(source)
     }
 }

@@ -1,4 +1,4 @@
-// Generated from /Users/vps_developer/Desktop/github/RuleEngine-main/src/main/resources/RtRuleEngine2.g4 by ANTLR 4.13.1
+// Generated from E:/Projects/JavaProjects/RuleEngine/src/main/resources/RtRuleEngine2.g4 by ANTLR 4.13.1
 package com.cool.jerry.g4;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -52,19 +52,12 @@ public interface RtRuleEngine2Visitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFunctionStatement(RtRuleEngine2Parser.FunctionStatementContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code AddSubExpression}
-	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
+	 * Visit a parse tree produced by the {@code IfStatement}
+	 * labeled alternative in {@link RtRuleEngine2Parser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitAddSubExpression(RtRuleEngine2Parser.AddSubExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code MethodCallExpression}
-	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitMethodCallExpression(RtRuleEngine2Parser.MethodCallExpressionContext ctx);
+	T visitIfStatement(RtRuleEngine2Parser.IfStatementContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code IntExpression}
 	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
@@ -72,6 +65,48 @@ public interface RtRuleEngine2Visitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitIntExpression(RtRuleEngine2Parser.IntExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code FloatExpression}
+	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFloatExpression(RtRuleEngine2Parser.FloatExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code OrExpression}
+	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitOrExpression(RtRuleEngine2Parser.OrExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code AddSubExpression}
+	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAddSubExpression(RtRuleEngine2Parser.AddSubExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code BooleanExpression}
+	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBooleanExpression(RtRuleEngine2Parser.BooleanExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code AndExpression}
+	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAndExpression(RtRuleEngine2Parser.AndExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code MethodCallExpression}
+	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMethodCallExpression(RtRuleEngine2Parser.MethodCallExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code StringExpression}
 	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
@@ -87,19 +122,12 @@ public interface RtRuleEngine2Visitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitIdExpression(RtRuleEngine2Parser.IdExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code FloatExpression}
+	 * Visit a parse tree produced by the {@code ObjectMethodCallExpression}
 	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFloatExpression(RtRuleEngine2Parser.FloatExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code BlockExpression}
-	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBlockExpression(RtRuleEngine2Parser.BlockExpressionContext ctx);
+	T visitObjectMethodCallExpression(RtRuleEngine2Parser.ObjectMethodCallExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code IdRefExpression}
 	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
@@ -114,6 +142,25 @@ public interface RtRuleEngine2Visitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitMulDivExpression(RtRuleEngine2Parser.MulDivExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code EqualsExpression}
+	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitEqualsExpression(RtRuleEngine2Parser.EqualsExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link RtRuleEngine2Parser#ifStatment}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIfStatment(RtRuleEngine2Parser.IfStatmentContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link RtRuleEngine2Parser#elseStatment}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitElseStatment(RtRuleEngine2Parser.ElseStatmentContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link RtRuleEngine2Parser#variable}.
 	 * @param ctx the parse tree

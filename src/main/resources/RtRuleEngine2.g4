@@ -9,21 +9,30 @@ statement
     | variable '.' properties '=' expression                        # VariablePropertiesAssignmentStatement
     | expression                                                    # InvokeStatement
     | 'fun' method '(' (param (',' param)*)? ')' '{' statement+ ('return' expression)? '}' # FunctionStatement
+    | 'if' expression '{' ifStatment? '}' ('else' '{' elseStatment? '}')? # IfStatement
     ;
 
 //表达式定义
 expression
-    :   expression op=('*'|'/') expression                             # MulDivExpression
-    |   expression op=('+'|'-') expression                             # AddSubExpression
-    |   ID                                                             # IdExpression
-    |   ID_REF                                                         # IdRefExpression
-    |   INT                                                            # IntExpression
-    |   STRING                                                         # StringExpression
-    |   FLOAT                                                          # FloatExpression
-    |   (variable '.')? method '(' (expression (',' expression)*)? ')' # MethodCallExpression
-    |   '(' expression ')'                                             # BlockExpression
+    :   expression '.' method '(' (expression (',' expression)*)? ')'    # ObjectMethodCallExpression
+    |   method '(' (expression (',' expression)*)? ')'                   # MethodCallExpression
+    |   expression op=('*'|'/') expression                               # MulDivExpression
+    |   expression op=('+'|'-') expression                               # AddSubExpression
+    |   BOOLEAN                                                          # BooleanExpression
+    |   ID                                                               # IdExpression
+    |   ID_REF                                                           # IdRefExpression
+    |   INT                                                              # IntExpression
+    |   STRING                                                           # StringExpression
+    |   FLOAT                                                            # FloatExpression
+    |   expression '==' expression                                       # EqualsExpression
+    |   expression '&&' expression                                       # AndExpression
+    |   expression '||' expression                                       # OrExpression
+//    |   '(' expression ')'                                             # BlockExpression
     ;
 
+ifStatment: statement+;
+
+elseStatment: statement+;
 
 variable : ID_REF | ID;
 
@@ -41,7 +50,8 @@ ID_REF: '@' ID; //引用环境变量的定义
 
 STRING: '\'' ( ~('\''|'\\') | ('\\' .) )* '\''| '"' ( ~('"'|'\\') | ('\\' .) )* '"'; //匹配带引号的文本
 INT: '-'? '0'..'9'+; //匹配整数
-FLOAT:'-'? INT+ ('.' INT+)?; //匹配浮点数
+FLOAT: '-'? INT+ ('.' INT+)?; //匹配浮点数
+BOOLEAN: 'true' | 'false';//匹配boolean值
 
 MUL     : '*' ;
 DIV     : '/' ;

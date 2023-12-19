@@ -11,14 +11,24 @@ import org.antlr.v4.runtime.CommonTokenStream
 
 class RtRuleEngine: RuleEngine {
     private val environments = mutableMapOf<String,Any>()
-    private val environmentMethods = mutableMapOf<String,InjectMethod>()
+    private val environmentMethods = mutableListOf<InjectMethod>()
 
     override fun setEnvironment(key: String, value: Any) {
         environments[key] = value
     }
 
-    override fun setEnvironmentMethod(key: String, method: InjectMethod) {
-        environmentMethods[key] = method
+    override fun setEnvironmentMethod(method: InjectMethod) {
+        environmentMethods.find {
+            it.method.name == method.method.name && it.method.parameterCount == method.method.parameterCount &&
+                    it.method.parameters.zip(method.method.parameters)
+                        .all { pair->
+                            pair.first.type == pair.second.type
+                        }
+        }?.let {
+            throw RuntimeException("method:${method.name} already define")
+        }
+
+        environmentMethods.add(method)
     }
 
     override fun execute(rule: String): Node.Program {
