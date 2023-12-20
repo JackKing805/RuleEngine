@@ -1,5 +1,6 @@
 package com.cool.jerry.rt_engine.exception
 
 class OpNotSupport(
-    name:String
-):RuntimeException("$name can not into operation")
+    name:String,
+    source:String
+):RuntimeException("$name can not into operation:$source")

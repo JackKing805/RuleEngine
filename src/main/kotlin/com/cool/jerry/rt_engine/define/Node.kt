@@ -45,13 +45,6 @@ sealed class Node(
             val returnExpression: Node?,
             override val source: String
         ) : Statement(source)
-
-        data class IfStatement(
-            val ifCondition:Expression,
-            val ifStatements:List<Statement>,
-            val elseStatements:List<Statement>,
-            override val source: String
-        ):Statement(source)
     }
 
     sealed class Expression(source: String) : Node(source) {
@@ -143,5 +136,19 @@ sealed class Node(
             val rightExpression: Expression,
             override val source: String
         ) : Expression(source)
+
+
+        data class IfExpression(
+            val ifCondition:Expression,
+            val ifStatements:List<Statement>,
+            val elseStatements:List<Statement>,
+            override val source: String
+        ):Expression(source)
+
+        data class GetPropertiesExpression(
+            val expression:Expression,
+            val properties: IdExpression.Id,
+            override val source: String
+        ):Expression(source)
     }
 }

@@ -3,6 +3,7 @@ package com.cool.jerry.rt_engine
 import com.cool.jerry.g4.RtRuleEngine2BaseVisitor
 import com.cool.jerry.g4.RtRuleEngine2Parser
 import com.cool.jerry.rt_engine.define.Node
+import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
 
 class RtRuleEngine2VisitorImpl : RtRuleEngine2BaseVisitor<Node>() {
@@ -82,7 +83,17 @@ class RtRuleEngine2VisitorImpl : RtRuleEngine2BaseVisitor<Node>() {
         return Node.Statement.FunctionStatement(functionNameDefine, params, statements, returnExpression, ctx.text)
     }
 
-    override fun visitIfStatement(ctx: RtRuleEngine2Parser.IfStatementContext): Node {
+    override fun visitGetPropertiesExpression(ctx: RtRuleEngine2Parser.GetPropertiesExpressionContext): Node {
+        val expression = visit(ctx.expression()) as Node.Expression
+        val properties = ctx.properties().ID().toIdExpression() as Node.Expression.IdExpression.Id
+        return Node.Expression.GetPropertiesExpression(
+            expression,
+            properties,
+            ctx.text
+        )
+    }
+
+    override fun visitIfExpression(ctx: RtRuleEngine2Parser.IfExpressionContext): Node {
         val condition = visit(ctx.expression()) as Node.Expression
         val ifStatements = ctx.ifStatment()?.statement()?.map {
             visit(it) as Node.Statement
@@ -92,7 +103,7 @@ class RtRuleEngine2VisitorImpl : RtRuleEngine2BaseVisitor<Node>() {
             visit(it) as Node.Statement
         }?: emptyList()
 
-        return Node.Statement.IfStatement(
+        return Node.Expression.IfExpression(
             condition,
             ifStatements,
             elseStatements,

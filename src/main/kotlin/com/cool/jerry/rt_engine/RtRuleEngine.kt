@@ -5,13 +5,28 @@ import com.cool.jerry.g4.RtRuleEngine2Parser
 import com.cool.jerry.i.InjectMethod
 import com.cool.jerry.i.RuleEngine
 import com.cool.jerry.rt_engine.define.Node
+import com.cool.jerry.rt_engine.utils.Embed
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 
 
 class RtRuleEngine: RuleEngine {
+
+
     private val environments = mutableMapOf<String,Any>()
     private val environmentMethods = mutableListOf<InjectMethod>()
+
+
+    init {
+        setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log",String::class.java)))
+        setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log",Int::class.java)))
+        setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log",Long::class.java)))
+        setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log",Boolean::class.java)))
+        setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log",Float::class.java)))
+        setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log",Double::class.java)))
+        setEnvironmentMethod(InjectMethod("currentTimestamp", Embed::class.java.getMethod("currentTimestamp")))
+    }
+
 
     override fun setEnvironment(key: String, value: Any) {
         environments[key] = value

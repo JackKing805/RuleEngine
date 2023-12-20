@@ -17,6 +17,12 @@ data class InjectMethod(
     }
 
     fun isSameMethod(nodes:List<RtParser.ParseResult.ValueResult<*>>):Boolean{
+        if (method.parameterCount==0){
+            if (nodes.isEmpty()){
+                return true
+            }
+        }
+
         if (nodes.size!=method.parameterCount){
             return false
         }
@@ -31,37 +37,51 @@ data class InjectMethod(
                     }
                 }
                 is RtParser.ParseResult.ValueResult.FloatValueResult -> {
-                    if (
-                        mp!=Float::class.java &&
-                        mp!=Double::class.java
-                    ){
-                        return false
+                    if (node.isDouble()){
+                        if (
+                            mp==Double::class.java
+                        ){
+                            return true
+                        }
+                    }else{
+                        if (
+                            mp==Float::class.java
+                        ){
+                            return true
+                        }
                     }
                 }
                 is RtParser.ParseResult.ValueResult.IntValueResult -> {
-                    if (
-                        mp!=Int::class.java &&
-                        mp!=Long::class.java
-                    ){
-                        return false
+                    if (node.isLong()){
+                        if (
+                            mp==Long::class.java
+                        ){
+                            return true
+                        }
+                    }else{
+                        if (
+                            mp==Int::class.java
+                        ){
+                            return true
+                        }
                     }
                 }
                 is RtParser.ParseResult.ValueResult.StringValueResult -> {
                     if (
-                        mp!=String::class.java
+                        mp==String::class.java
                     ){
-                        return false
+                        return true
                     }
                 }
 
                 is RtParser.ParseResult.ValueResult.BooleanValueResult -> {
-                    if (mp!=Boolean::class.java){
-                        return false
+                    if (mp==Boolean::class.java){
+                        return true
                     }
                 }
             }
         }
 
-        return true
+        return false
     }
 }

@@ -52,12 +52,12 @@ public interface RtRuleEngine2Visitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFunctionStatement(RtRuleEngine2Parser.FunctionStatementContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code IfStatement}
-	 * labeled alternative in {@link RtRuleEngine2Parser#statement}.
+	 * Visit a parse tree produced by the {@code IfExpression}
+	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitIfStatement(RtRuleEngine2Parser.IfStatementContext ctx);
+	T visitIfExpression(RtRuleEngine2Parser.IfExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code IntExpression}
 	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
@@ -114,6 +114,13 @@ public interface RtRuleEngine2Visitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitStringExpression(RtRuleEngine2Parser.StringExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code GetPropertiesExpression}
+	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGetPropertiesExpression(RtRuleEngine2Parser.GetPropertiesExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code IdExpression}
 	 * labeled alternative in {@link RtRuleEngine2Parser#expression}.
