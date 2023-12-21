@@ -25,6 +25,9 @@ class RtRuleEngine: RuleEngine {
         setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log",Float::class.java)))
         setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log",Double::class.java)))
         setEnvironmentMethod(InjectMethod("currentTimestamp", Embed::class.java.getMethod("currentTimestamp")))
+        setEnvironmentMethod(InjectMethod("uuid", Embed::class.java.getMethod("uuid")))
+        setEnvironmentMethod(InjectMethod("randomInt", Embed::class.java.getMethod("randomInt",Boolean::class.java)))
+        setEnvironmentMethod(InjectMethod("toString", Embed::class.java.getMethod("toString",Any::class.java)))
     }
 
 

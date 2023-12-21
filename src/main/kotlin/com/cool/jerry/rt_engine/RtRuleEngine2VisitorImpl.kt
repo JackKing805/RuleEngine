@@ -3,7 +3,6 @@ package com.cool.jerry.rt_engine
 import com.cool.jerry.g4.RtRuleEngine2BaseVisitor
 import com.cool.jerry.g4.RtRuleEngine2Parser
 import com.cool.jerry.rt_engine.define.Node
-import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
 
 class RtRuleEngine2VisitorImpl : RtRuleEngine2BaseVisitor<Node>() {
@@ -85,7 +84,7 @@ class RtRuleEngine2VisitorImpl : RtRuleEngine2BaseVisitor<Node>() {
 
     override fun visitGetPropertiesExpression(ctx: RtRuleEngine2Parser.GetPropertiesExpressionContext): Node {
         val expression = visit(ctx.expression()) as Node.Expression
-        val properties = ctx.properties().ID().toIdExpression() as Node.Expression.IdExpression.Id
+        val properties = visit(ctx.properties()) as Node.Properties.Properties
         return Node.Expression.GetPropertiesExpression(
             expression,
             properties,
@@ -142,6 +141,45 @@ class RtRuleEngine2VisitorImpl : RtRuleEngine2BaseVisitor<Node>() {
         return Node.Expression.MethodCallExpression(methodIdExpression, params, ctx.text)
     }
 
+    override fun visitLoopExpression(ctx: RtRuleEngine2Parser.LoopExpressionContext): Node {
+        val expression = visit(ctx.expression()) as Node.Expression
+        val id = ctx.ID().toIdExpression() as Node.Expression.IdExpression.Id
+        val bloakStatement = ctx.bloakStatment()?.statement()?.map {
+            visit(it) as Node.Statement
+        }?: emptyList()
+
+        return Node.Expression.LoopExpression(
+            expression,
+            id,
+            bloakStatement,
+            ctx.text
+        )
+    }
+
+    override fun visitArrayAccessExpression(ctx: RtRuleEngine2Parser.ArrayAccessExpressionContext): Node {
+        val id = visit(ctx.expression()) as Node.Expression
+        val index = Node.Expression.TypeExpression.IntType(ctx.INT().text.toLong(), ctx.text)
+        return Node.Expression.ArrayAccessExpression(
+            id,
+            index,
+            ctx.text
+        )
+    }
+
+    override fun visitDefineArrayExpression(ctx: RtRuleEngine2Parser.DefineArrayExpressionContext): Node {
+        return visit(ctx.defineArray())
+    }
+
+    override fun visitDefineArray(ctx: RtRuleEngine2Parser.DefineArrayContext): Node {
+        val items = ctx.expression().map {
+            visit(it) as Node.Expression
+        }
+        return Node.Expression.DefineArrayExpression(
+            items,
+            ctx.text
+        )
+    }
+
     override fun visitVariable(ctx: RtRuleEngine2Parser.VariableContext): Node {
         return if (ctx.ID() != null) {
             ctx.ID().toIdExpression()
@@ -181,7 +219,15 @@ class RtRuleEngine2VisitorImpl : RtRuleEngine2BaseVisitor<Node>() {
     }
 
     override fun visitProperties(ctx: RtRuleEngine2Parser.PropertiesContext): Node {
-        return visit(ctx.ID())
+        val id = ctx.ID().toIdExpression() as Node.Expression.IdExpression.Id
+        val index = ctx.INT()?.let {
+            Node.Expression.TypeExpression.IntType(it.text.toLong(),it.text)
+        }
+        return Node.Properties.Properties(
+            id,
+            index,
+            ctx.text
+        )
     }
 
     /**

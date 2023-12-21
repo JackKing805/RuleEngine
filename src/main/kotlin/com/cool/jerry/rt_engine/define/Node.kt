@@ -1,7 +1,5 @@
 package com.cool.jerry.rt_engine.define
 
-import java.util.UUID
-
 
 sealed class Node(
     open val source: String,
@@ -89,6 +87,29 @@ sealed class Node(
                 val value: Boolean,
                 override val source: String
             ):TypeExpression(source)
+
+            data class ArrayType(
+                val value: Array<TypeExpression>,
+                override val source: String
+            ):TypeExpression(source) {
+                override fun equals(other: Any?): Boolean {
+                    if (this === other) return true
+                    if (javaClass != other?.javaClass) return false
+
+                    other as ArrayType
+
+                    if (!value.contentEquals(other.value)) return false
+                    if (source != other.source) return false
+
+                    return true
+                }
+
+                override fun hashCode(): Int {
+                    var result = value.contentHashCode()
+                    result = 31 * result + source.hashCode()
+                    return result
+                }
+            }
         }
 
         data class ObjectMethodCallExpression(
@@ -118,7 +139,6 @@ sealed class Node(
             override val source: String
         ) : Expression(source)
 
-
         data class EqualsExpression(
             val leftExpression: Expression,
             val rightExpression: Expression,
@@ -137,7 +157,6 @@ sealed class Node(
             override val source: String
         ) : Expression(source)
 
-
         data class IfExpression(
             val ifCondition:Expression,
             val ifStatements:List<Statement>,
@@ -147,8 +166,36 @@ sealed class Node(
 
         data class GetPropertiesExpression(
             val expression:Expression,
-            val properties: IdExpression.Id,
+            val properties: Properties.Properties,
             override val source: String
         ):Expression(source)
+
+
+        data class LoopExpression(
+            val targetExpression:Expression,
+            val item: IdExpression.Id,
+            val bloakStatements:List<Statement>,
+            override val source: String
+        ):Expression(source)
+
+
+        data class ArrayAccessExpression(
+            val targetExpression:Expression,
+            val index: TypeExpression.IntType,
+            override val source: String
+        ):Expression(source)
+
+        data class DefineArrayExpression(
+            val items:List<Expression>,
+            override val source: String
+        ):Expression(source)
+    }
+
+    sealed class Properties(source: String):Node(source){
+        data class Properties(
+            val id: Expression.IdExpression.Id,
+            val index: Expression.TypeExpression.IntType?,
+            override val source: String
+        ):Node.Properties(source)
     }
 }

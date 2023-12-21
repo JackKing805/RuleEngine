@@ -4,10 +4,7 @@ import com.cool.jerry.i.InjectMethod
 import com.cool.jerry.rt_engine.define.Node
 import com.cool.jerry.rt_engine.exception.*
 import java.lang.StringBuilder
-import java.lang.reflect.Method
-import java.lang.reflect.Type
 import kotlin.RuntimeException
-import kotlin.math.round
 
 class RtParser {
     private val environments = mutableMapOf<String, Any>()
@@ -136,6 +133,11 @@ class RtParser {
             is Node.Expression.TypeExpression.IntType -> ParseResult.ValueResult.IntValueResult(node.value)
             is Node.Expression.TypeExpression.StringType -> ParseResult.ValueResult.StringValueResult(node.value)
             is Node.Expression.TypeExpression.BooleanType -> ParseResult.ValueResult.BooleanValueResult(node.value)
+            is Node.Expression.TypeExpression.ArrayType -> {
+                ParseResult.ValueResult.ArrayValueResult(node.value.map {
+                    parseTypeExpression(it).getValueResultElseThrow()
+                }.toTypedArray())
+            }
         }
     }
 
@@ -151,24 +153,48 @@ class RtParser {
                 val result = if (node.op == "+") {
                     //+
                     when (leftExpression) {
-                        is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any",node.source)
+                        is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any", node.source)
                         is ParseResult.ValueResult.FloatValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("Float + Boolean",node.source)
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Float + Any",node.source)
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "Float + Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport(
+                                    "Float + Any",
+                                    node.source
+                                )
+
                                 is ParseResult.ValueResult.FloatValueResult -> leftExpression.value + rightExpression.value
                                 is ParseResult.ValueResult.IntValueResult -> leftExpression.value + rightExpression.value
                                 is ParseResult.ValueResult.StringValueResult -> "${leftExpression.value}${rightExpression.value}"
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "Float + Array",
+                                    node.source
+                                )
                             }
                         }
 
                         is ParseResult.ValueResult.IntValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("Int + Boolean",node.source)
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Int + Any",node.source)
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "Int + Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport(
+                                    "Int + Any",
+                                    node.source
+                                )
+
                                 is ParseResult.ValueResult.FloatValueResult -> leftExpression.value + rightExpression.value
                                 is ParseResult.ValueResult.IntValueResult -> leftExpression.value + rightExpression.value
                                 is ParseResult.ValueResult.StringValueResult -> "${leftExpression.value}${rightExpression.value}"
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "Int + Array",
+                                    node.source
+                                )
                             }
                         }
 
@@ -178,7 +204,15 @@ class RtParser {
                                 is ParseResult.ValueResult.FloatValueResult -> "${leftExpression.value}${rightExpression.value}"
                                 is ParseResult.ValueResult.IntValueResult -> "${leftExpression.value}${rightExpression.value}"
                                 is ParseResult.ValueResult.StringValueResult -> "${leftExpression.value}${rightExpression.value}"
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("String + Boolean",node.source)
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "String + Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "String + Array",
+                                    node.source
+                                )
                             }
                         }
 
@@ -187,58 +221,131 @@ class RtParser {
                                 is ParseResult.ValueResult.BooleanValueResult -> leftExpression.value && rightExpression.value
                                 is ParseResult.ValueResult.FloatValueResult,
                                 is ParseResult.ValueResult.IntValueResult,
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Boolean + Any",node.source)
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport(
+                                    "Boolean + Any",
+                                    node.source
+                                )
 
                                 is ParseResult.ValueResult.StringValueResult -> "${leftExpression.value}${rightExpression.value}"
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "Boolean + Array",
+                                    node.source
+                                )
                             }
                         }
+
+                        is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport("Array +", node.source)
+
                     }
                 } else {
                     //-
                     when (leftExpression) {
-                        is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any",node.source)
+                        is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any", node.source)
                         is ParseResult.ValueResult.BooleanValueResult -> {
                             when (rightExpression) {
                                 is ParseResult.ValueResult.BooleanValueResult -> leftExpression.value && rightExpression.value
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Boolean - Any",node.source)
-                                is ParseResult.ValueResult.FloatValueResult -> throw OpNotSupport("Boolean - Float",node.source)
-                                is ParseResult.ValueResult.IntValueResult -> throw OpNotSupport("Boolean - Int",node.source)
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport(
+                                    "Boolean - Any",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.FloatValueResult -> throw OpNotSupport(
+                                    "Boolean - Float",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.IntValueResult -> throw OpNotSupport(
+                                    "Boolean - Int",
+                                    node.source
+                                )
+
                                 is ParseResult.ValueResult.StringValueResult -> "${leftExpression.value}${rightExpression.value}"
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "Boolean - Array",
+                                    node.source
+                                )
                             }
                         }
 
                         is ParseResult.ValueResult.FloatValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("Float - Boolean",node.source)
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Float - Any",node.source)
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "Float - Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport(
+                                    "Float - Any",
+                                    node.source
+                                )
+
                                 is ParseResult.ValueResult.FloatValueResult -> leftExpression.value - rightExpression.value
                                 is ParseResult.ValueResult.IntValueResult -> leftExpression.value - rightExpression.value
-                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport("Float - String",node.source)
+                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport(
+                                    "Float - String",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "Float - Array",
+                                    node.source
+                                )
                             }
                         }
 
                         is ParseResult.ValueResult.IntValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("Int - Boolean",node.source)
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Int - Any",node.source)
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "Int - Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport(
+                                    "Int - Any",
+                                    node.source
+                                )
+
                                 is ParseResult.ValueResult.FloatValueResult -> leftExpression.value - rightExpression.value
                                 is ParseResult.ValueResult.IntValueResult -> leftExpression.value - rightExpression.value
-                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport("Int - String",node.source)
+                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport(
+                                    "Int - String",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "Int - Array",
+                                    node.source
+                                )
                             }
                         }
 
                         is ParseResult.ValueResult.StringValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("String - Boolean",node.source)
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("String - Any",node.source)
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "String - Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport(
+                                    "String - Any",
+                                    node.source
+                                )
+
                                 is ParseResult.ValueResult.FloatValueResult -> "${leftExpression.value}${rightExpression.value}"
                                 is ParseResult.ValueResult.IntValueResult -> "${leftExpression.value}${rightExpression.value}"
                                 is ParseResult.ValueResult.StringValueResult -> leftExpression.value.replace(
                                     rightExpression.value,
                                     ""
                                 )
+
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "String - Array",
+                                    node.source
+                                )
                             }
                         }
+
+                        is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport("Array -", node.source)
                     }
                 }
                 when (result) {
@@ -268,25 +375,41 @@ class RtParser {
                 val result = if (node.op == "*") {
                     //+
                     when (leftExpression) {
-                        is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any",node.source)
+                        is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any", node.source)
                         is ParseResult.ValueResult.FloatValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Float * Any",node.source)
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport(
+                                    "Float * Any",
+                                    node.source
+                                )
+
                                 is ParseResult.ValueResult.FloatValueResult -> leftExpression.value * rightExpression.value
                                 is ParseResult.ValueResult.IntValueResult -> leftExpression.value * rightExpression.value
-                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport("Float * String",node.source)
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("Float * Boolean",node.source)
+                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport(
+                                    "Float * String",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "Float * Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "Float * Array",
+                                    node.source
+                                )
                             }
                         }
 
                         is ParseResult.ValueResult.IntValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any",node.source)
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any", node.source)
                                 is ParseResult.ValueResult.FloatValueResult -> leftExpression.value * rightExpression.value
                                 is ParseResult.ValueResult.IntValueResult -> leftExpression.value * rightExpression.value
                                 is ParseResult.ValueResult.StringValueResult -> {
                                     if (leftExpression.value <= 0) {
-                                        throw OpNotSupport("o or -Int * String",node.source)
+                                        throw OpNotSupport("o or -Int * String", node.source)
                                     }
 
                                     val string = StringBuilder()
@@ -296,17 +419,29 @@ class RtParser {
                                     string.toString()
                                 }
 
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("Int * Boolean",node.source)
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "Int * Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "Int * Array",
+                                    node.source
+                                )
                             }
                         }
 
                         is ParseResult.ValueResult.StringValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any",node.source)
-                                is ParseResult.ValueResult.FloatValueResult -> throw OpNotSupport("Float * String",node.source)
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any", node.source)
+                                is ParseResult.ValueResult.FloatValueResult -> throw OpNotSupport(
+                                    "Float * String",
+                                    node.source
+                                )
+
                                 is ParseResult.ValueResult.IntValueResult -> {
                                     if (rightExpression.value <= 0) {
-                                        throw OpNotSupport("o or -Int * String",node.source)
+                                        throw OpNotSupport("o or -Int * String", node.source)
                                     }
 
                                     val string = StringBuilder()
@@ -316,64 +451,178 @@ class RtParser {
                                     string.toString()
                                 }
 
-                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport("String * String",node.source)
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("String * Boolean",node.source)
+                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport(
+                                    "String * String",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "String * Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "String * Array",
+                                    node.source
+                                )
                             }
                         }
 
                         is ParseResult.ValueResult.BooleanValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Boolean * Any",node.source)
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("Boolean * Boolean",node.source)
-                                is ParseResult.ValueResult.FloatValueResult -> throw OpNotSupport("Boolean * Float",node.source)
-                                is ParseResult.ValueResult.IntValueResult -> throw OpNotSupport("Boolean * Int",node.source)
-                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport("Boolean * String",node.source)
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport(
+                                    "Boolean * Any",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "Boolean * Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.FloatValueResult -> throw OpNotSupport(
+                                    "Boolean * Float",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.IntValueResult -> throw OpNotSupport(
+                                    "Boolean * Int",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport(
+                                    "Boolean * String",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "Boolean * Array",
+                                    node.source
+                                )
                             }
+                        }
+
+                        is ParseResult.ValueResult.ArrayValueResult -> {
+                            throw OpNotSupport("Array *", node.source)
                         }
                     }
                 } else {
                     //-
                     when (leftExpression) {
-                        is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any",node.source)
+                        is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any", node.source)
                         is ParseResult.ValueResult.FloatValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Float / Any",node.source)
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport(
+                                    "Float / Any",
+                                    node.source
+                                )
+
                                 is ParseResult.ValueResult.FloatValueResult -> leftExpression.value / rightExpression.value
                                 is ParseResult.ValueResult.IntValueResult -> leftExpression.value / rightExpression.value
-                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport("Float / String",node.source)
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("Float / Boolean",node.source)
+                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport(
+                                    "Float / String",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "Float / Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "Float / Array",
+                                    node.source
+                                )
                             }
                         }
 
                         is ParseResult.ValueResult.IntValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any",node.source)
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any", node.source)
                                 is ParseResult.ValueResult.FloatValueResult -> leftExpression.value / rightExpression.value
                                 is ParseResult.ValueResult.IntValueResult -> leftExpression.value / rightExpression.value
-                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport("String / String",node.source)
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("Int / Boolean",node.source)
+                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport(
+                                    "String / String",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "Int / Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "Int / Array",
+                                    node.source
+                                )
                             }
                         }
 
                         is ParseResult.ValueResult.StringValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any",node.source)
-                                is ParseResult.ValueResult.FloatValueResult -> throw OpNotSupport("String / Float",node.source)
-                                is ParseResult.ValueResult.IntValueResult -> throw OpNotSupport("String / Int",node.source)
-                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport("String / String",node.source)
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("String / Boolean",node.source)
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Any", node.source)
+                                is ParseResult.ValueResult.FloatValueResult -> throw OpNotSupport(
+                                    "String / Float",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.IntValueResult -> throw OpNotSupport(
+                                    "String / Int",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport(
+                                    "String / String",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "String / Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "String / Array",
+                                    node.source
+                                )
                             }
                         }
 
                         is ParseResult.ValueResult.BooleanValueResult -> {
                             when (rightExpression) {
-                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport("Boolean / Any",node.source)
-                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport("Boolean / Boolean",node.source)
-                                is ParseResult.ValueResult.FloatValueResult -> throw OpNotSupport("Boolean / Float",node.source)
-                                is ParseResult.ValueResult.IntValueResult -> throw OpNotSupport("Boolean / Int",node.source)
-                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport("Boolean / String",node.source)
+                                is ParseResult.ValueResult.AnyValueResult -> throw OpNotSupport(
+                                    "Boolean / Any",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.BooleanValueResult -> throw OpNotSupport(
+                                    "Boolean / Boolean",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.FloatValueResult -> throw OpNotSupport(
+                                    "Boolean / Float",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.IntValueResult -> throw OpNotSupport(
+                                    "Boolean / Int",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.StringValueResult -> throw OpNotSupport(
+                                    "Boolean / String",
+                                    node.source
+                                )
+
+                                is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport(
+                                    "Boolean / Array",
+                                    node.source
+                                )
                             }
                         }
+
+                        is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport("Array /", node.source)
                     }
                 }
                 when (result) {
@@ -546,22 +795,64 @@ class RtParser {
             }
 
             is Node.Expression.GetPropertiesExpression -> {
-                val left = parseNode(node.expression, params)
-                if (left !is ParseResult.ValueResult.AnyValueResult){
-                    throw RuntimeException("get properties only support in Any")
-                }
+                val left = parseNode(node.expression, params) as ParseResult.ValueResult<*>
+//                if (left !is ParseResult.ValueResult.AnyValueResult) {
+//                    throw RuntimeException("get properties only support in Any")
+//                }
 
-                val name = node.properties.name
-                return (
-                        left.value::class.java.declaredFields.find {
+                val name = node.properties.id.name
+                val result = (
+                        left.value!!::class.java.declaredFields.find {
                             it.name == name
                         }?.let {
                             it.isAccessible = true
                             it
-                        }?.get(left.value) ?: throw RefNotDefinePropertiesException(left.value::class.java.name, name)
+                        }?.get(left.value) ?: throw RefNotDefinePropertiesException(left.value!!::class.java.name, name)
                         ).toValueResult()
+
+                if (node.properties.index == null) {
+                    result
+                } else {
+                    if (result !is ParseResult.ValueResult.ArrayValueResult) {
+                        throw RuntimeException("$name not a array")
+                    }
+                    result.value[node.properties.index.value.toInt()].toValueResult()
+                }
+            }
+
+            is Node.Expression.ArrayAccessExpression -> {
+                val idExpression = parseExpression(node.targetExpression, params).getValueResultElseThrow()
+                if (idExpression !is ParseResult.ValueResult.ArrayValueResult) {
+                    throw RuntimeException("${node.targetExpression.source} not a array")
+                }
+                val index = node.index.value.toInt()
+                idExpression.value[index].toValueResult()
+            }
+
+            is Node.Expression.LoopExpression -> {
+                val targetExpression = parseNode(node.targetExpression,params)
+                if (targetExpression !is ParseResult.ValueResult.ArrayValueResult){
+                    throw RuntimeException("loop target:${node.targetExpression.source} not a array")
+                }
+                for (valueResult in targetExpression.value) {
+                    for (bloakStatement in node.bloakStatements) {
+                        parseNode(bloakStatement, listOf(Param(node.item.name,valueResult)))
+                    }
+                }
+                ParseResult.NoneResult
+            }
+            is Node.Expression.DefineArrayExpression -> {
+                val transform = node.items.map {
+                    parseNode(it,params).getValueResultElseThrow()
+                }.toTypedArray()
+                ParseResult.ValueResult.ArrayValueResult(transform)
             }
         }
+    }
+
+
+    private fun parseProperties(node: Node.Properties,params: List<Param>):ParseResult{
+        return ParseResult.NoneResult
     }
 
     private fun parseProgram(node: Node.Program): ParseResult {
@@ -571,11 +862,13 @@ class RtParser {
         return all.lastOrNull() ?: ParseResult.NoneResult
     }
 
+
     private fun parseNode(node: Node, params: List<Param>): ParseResult {
         return when (node) {
             is Node.Expression -> parseExpression(node, params)
             is Node.Program -> parseProgram(node)
             is Node.Statement -> parseStatement(node, params)
+            is Node.Properties.Properties -> parseProperties(node, params)
         }
     }
 
@@ -588,6 +881,7 @@ class RtParser {
             is ParseResult.ValueResult.StringValueResult -> this
 //            is ParseResult.Variable -> value.getValueResultElseThrow()
             is ParseResult.ValueResult.BooleanValueResult -> this
+            is ParseResult.ValueResult.ArrayValueResult -> this
         }
     }
 
@@ -601,22 +895,44 @@ class RtParser {
 
     private fun Any.toValueResult(): ParseResult.ValueResult<*> {
         return when (this) {
-            is Int,
+            is ParseResult.ValueResult<*>->{
+                this
+            }
+
+            is Int -> {
+                ParseResult.ValueResult.IntValueResult(this.toLong())
+            }
+
             is Long -> {
-                ParseResult.ValueResult.IntValueResult(this as Long)
+                ParseResult.ValueResult.IntValueResult(this)
             }
 
             is String -> {
                 ParseResult.ValueResult.StringValueResult(this)
             }
 
-            is Float,
+            is Float -> {
+                ParseResult.ValueResult.FloatValueResult(this.toDouble())
+            }
+
             is Double -> {
-                ParseResult.ValueResult.FloatValueResult(this as Double)
+                ParseResult.ValueResult.FloatValueResult(this)
             }
 
             is Boolean -> {
                 ParseResult.ValueResult.BooleanValueResult(this)
+            }
+
+            is Array<*> -> {
+                ParseResult.ValueResult.ArrayValueResult( this.map {
+                    it!!.toValueResult()
+                }.toTypedArray())
+            }
+
+            is List<*> -> {
+                ParseResult.ValueResult.ArrayValueResult(this.map {
+                    it!!.toValueResult()
+                }.toTypedArray())
             }
 
             else -> {
@@ -639,7 +955,7 @@ class RtParser {
                 try {
                     this as Int
                 } catch (e: ClassCastException) {
-                    this.toString().toLong()
+                    this.toString().toInt()
                 }
             }
 
@@ -683,6 +999,14 @@ class RtParser {
                 this as ByteArray
             }
 
+            Array::class.java -> {
+                this as Array<*>
+            }
+
+            List::class.java -> {
+                this as List<*>
+            }
+
             else -> this
         }
     }
@@ -710,6 +1034,20 @@ class RtParser {
 
             data class BooleanValueResult(override val value: Boolean) : ValueResult<Boolean>(value)
             data class AnyValueResult(override val value: Any) : ValueResult<Any>(value)
+            data class ArrayValueResult(override val value: Array<ValueResult<*>>) : ValueResult<Array<ValueResult<*>>>(value) {
+                override fun equals(other: Any?): Boolean {
+                    if (this === other) return true
+                    if (javaClass != other?.javaClass) return false
+
+                    other as ArrayValueResult
+
+                    return value.contentEquals(other.value)
+                }
+
+                override fun hashCode(): Int {
+                    return value.contentHashCode()
+                }
+            }
         }
 
         data object NoneResult : ParseResult()

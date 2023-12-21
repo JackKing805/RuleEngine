@@ -32,8 +32,11 @@ data class InjectMethod(
 
             when(node){
                 is RtParser.ParseResult.ValueResult.AnyValueResult -> {
+                    if (mp == Any::class.java){
+                        return true
+                    }
                     if (node.value::class.java.isAssignableFrom(mp)){
-                        return false
+                        return true
                     }
                 }
                 is RtParser.ParseResult.ValueResult.FloatValueResult -> {
@@ -76,6 +79,12 @@ data class InjectMethod(
 
                 is RtParser.ParseResult.ValueResult.BooleanValueResult -> {
                     if (mp==Boolean::class.java){
+                        return true
+                    }
+                }
+
+                is RtParser.ParseResult.ValueResult.ArrayValueResult -> {
+                    if (mp==Array::class.java || mp == List::class.java){
                         return true
                     }
                 }
