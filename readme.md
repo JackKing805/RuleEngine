@@ -24,3 +24,6 @@
     
     @a.a = 1231//属性赋值
 ```
+
+# antlr 学习 [https://zhuanlan.zhihu.com/p/347329881]
+# antlr 学习2 [https://daichangya.github.io/antlr4-doc/#/?id=%e5%be%ae%e4%bf%a1%e5%85%ac%e4%bc%97%e5%8f%b7]
