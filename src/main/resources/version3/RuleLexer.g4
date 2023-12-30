@@ -101,8 +101,8 @@ ELSE: 'else';
 
 //类型定义
 BOOLEAN: 'true' | 'false';
-NUMBER: '-'? Digit+;
-NUMBER_FLOAT: '-'? Digit+ ('.' Digit+)?;
+NUMBER: Digit+;
+NUMBER_FLOAT: Digit+ ('.' Digit+)?;
 STRING: '\'' ( ~('\''|'\\') | ('\\' .) )* '\''| '"' ( ~('"'|'\\') | ('\\' .) )* '"';
 
 fragment Digit: [0-9];
@@ -163,9 +163,11 @@ ID_REF: '@' Name; //引用环境变量的定义
 fragment Name: [a-zA-Z_][a-zA-Z0-9_]*;
 
 
+NEWLINE : '\r'? '\n' ;
+
 //定义注释
-WS: [ \t\r\n\u000C]+ -> skip;
+WS: [ \t\r\n\u000C]+ -> channel(HIDDEN);
 
-COMMENT: '/*' .*? '*/' -> skip;
+COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
 
-LINE_COMMENT: '//' ~[\r\n]* -> skip;
+LINE_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN);

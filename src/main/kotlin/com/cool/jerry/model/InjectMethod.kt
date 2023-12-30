@@ -1,6 +1,5 @@
-package com.cool.jerry.v2.base
+package com.cool.jerry.model
 
-import com.cool.jerry.v2.rt_engine.RtParser
 import java.lang.reflect.Method
 
 data class InjectMethod(
@@ -16,7 +15,7 @@ data class InjectMethod(
         }
     }
 
-    fun isSameMethod(nodes:List<RtParser.ParseResult.ValueResult<*>>):Boolean{
+    fun isSameMethod(nodes:List<ParseResult.ValueResult<*>>):Boolean{
         if (method.parameterCount==0){
             if (nodes.isEmpty()){
                 return true
@@ -31,7 +30,7 @@ data class InjectMethod(
             val mp = method.parameters[index].type
 
             when(node){
-                is RtParser.ParseResult.ValueResult.AnyValueResult -> {
+                is ParseResult.ValueResult.AnyValueResult -> {
                     if (mp == Any::class.java){
                         return true
                     }
@@ -39,7 +38,7 @@ data class InjectMethod(
                         return true
                     }
                 }
-                is RtParser.ParseResult.ValueResult.FloatValueResult -> {
+                is ParseResult.ValueResult.FloatValueResult -> {
                     if (node.isDouble()){
                         if (
                             mp==Double::class.java
@@ -54,7 +53,7 @@ data class InjectMethod(
                         }
                     }
                 }
-                is RtParser.ParseResult.ValueResult.IntValueResult -> {
+                is ParseResult.ValueResult.IntValueResult -> {
                     if (node.isLong()){
                         if (
                             mp==Long::class.java
@@ -63,13 +62,14 @@ data class InjectMethod(
                         }
                     }else{
                         if (
-                            mp==Int::class.java
+                            mp==Int::class.java ||
+                            mp == Long::class.java
                         ){
                             return true
                         }
                     }
                 }
-                is RtParser.ParseResult.ValueResult.StringValueResult -> {
+                is ParseResult.ValueResult.StringValueResult -> {
                     if (
                         mp==String::class.java
                     ){
@@ -77,13 +77,13 @@ data class InjectMethod(
                     }
                 }
 
-                is RtParser.ParseResult.ValueResult.BooleanValueResult -> {
+                is ParseResult.ValueResult.BooleanValueResult -> {
                     if (mp==Boolean::class.java){
                         return true
                     }
                 }
 
-                is RtParser.ParseResult.ValueResult.ArrayValueResult -> {
+                is ParseResult.ValueResult.ArrayValueResult -> {
                     if (mp==Array::class.java || mp == List::class.java){
                         return true
                     }

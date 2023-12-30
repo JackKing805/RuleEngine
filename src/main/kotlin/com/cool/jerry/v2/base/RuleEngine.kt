@@ -1,5 +1,6 @@
 package com.cool.jerry.v2.base
 
+import com.cool.jerry.model.InjectMethod
 import com.cool.jerry.v2.rt_engine.define.Node
 import com.example.testsensor.rule.EngineInformation
 

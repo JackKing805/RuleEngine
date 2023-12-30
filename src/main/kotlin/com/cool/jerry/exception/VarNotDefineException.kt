@@ -1,4 +1,4 @@
-package com.cool.jerry.v2.rt_engine.exception
+package com.cool.jerry.exception
 
 import java.lang.RuntimeException
 

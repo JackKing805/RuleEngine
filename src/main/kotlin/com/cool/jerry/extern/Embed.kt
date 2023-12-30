@@ -1,4 +1,4 @@
-package com.cool.jerry.v2.rt_engine.utils
+package com.cool.jerry.extern
 
 import java.util.UUID
 
@@ -61,5 +61,10 @@ object Embed {
             return any
         }
         return any.toString()
+    }
+
+    @JvmStatic
+    fun sleep(timeMill:Long){
+        Thread.sleep(timeMill)
     }
 }

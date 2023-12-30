@@ -1,17 +1,157 @@
 package com.cool.jerry.v3
 
-import com.cool.jerry.v2.rt_engine.define.Node
 import com.cool.jerry.version3.RuleParser
 import com.cool.jerry.version3.RuleParserBaseVisitor
 import org.antlr.v4.runtime.tree.TerminalNode
 
 class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
+    private fun R3Node.levelSet(parent:R3Node?){
+            this.setParent(parent)
+            when(this){
+                is R3Node.Expression.ArrayAccessExpression -> {
+                    this.array.levelSet(parent)
+                    this.index.levelSet(parent)
+                }
+                is R3Node.Expression.OperateExpression.AssignOperateExpression -> {
+                    this.left.levelSet(parent)
+                    this.right.levelSet(parent)
+                }
+                is R3Node.Expression.BreakExpression -> {
+                    this.setParent(parent)
+                }
+                is R3Node.Expression.ContinueExpression -> {
+                    this.setParent(parent)
+                }
+                is R3Node.Expression.Define.Identifier.ID -> {
+                    this.setParent(parent)
+                }
+                is R3Node.Expression.Define.Identifier.ID_REF -> {
+                    this.setParent(parent)
+                }
+                is R3Node.Expression.Define.Params -> {
+                    for (parameter in this.parameters) {
+                        parameter.levelSet(parent)
+                    }
+                }
+                is R3Node.Expression.IfExpression -> {
+                    this.condition.levelSet(parent)
+                    for (expression in this.thenBody) {
+                        expression.levelSet(this)
+                    }
+                    for (expression in this.elseBody) {
+                        expression.levelSet(this)
+                    }
+                }
+                is R3Node.Expression.LoopExpression -> {
+                    this.condition.levelSet(parent)
+                    this.conditionProxy.levelSet(this)
+                    for (expression in this.loopBody) {
+                        expression.levelSet(this)
+                    }
+                }
+                is R3Node.Expression.MethodCallExpression -> {
+                    this.methodName.levelSet(parent)
+                    for (argument in this.arguments) {
+                        argument.levelSet(parent)
+                    }
+                }
+                is R3Node.Expression.ObjectMethodCallExpression -> {
+                    this.objectExpression.levelSet(parent)
+                    this.methodName.levelSet(this)
+                    for (argument in this.arguments) {
+                        argument.levelSet(parent)
+                    }
+                }
+                is R3Node.Expression.ObjectPropertiesExpression -> {
+                    this.objectExpression.levelSet(parent)
+                    this.propertiesName.levelSet(this)
+                }
+                is R3Node.Expression.OperateExpression.BitOperateExpression -> {
+                    this.left.levelSet(parent)
+                    this.right.levelSet(parent)
+                }
+                is R3Node.Expression.OperateExpression.CompareOperateExpression->{
+                    this.left.levelSet(parent)
+                    this.right.levelSet(parent)
+                }
+                is R3Node.Expression.OperateExpression.MathAssignOperateExpression->{
+                    this.left.levelSet(parent)
+                    this.right.levelSet(parent)
+                }
+                is R3Node.Expression.OperateExpression.MathOperateExpression->{
+                    this.left.levelSet(parent)
+                    this.right.levelSet(parent)
+                }
+                is R3Node.Expression.OperateExpression.NumberAutoOperateExpression->{
+                    this.who.levelSet(parent)
+                }
+                is R3Node.Expression.RangeExpression -> {
+                    this.start.levelSet(parent)
+                    this.end.levelSet(parent)
+                }
+                is R3Node.Expression.ReturnExpression -> {
+                    this.expression?.levelSet(parent)
+                }
+                is R3Node.Expression.TypeExpression.ArrayExpression -> {
+                    for (typeExpression in this.value) {
+                        typeExpression.levelSet(parent)
+                    }
+                }
+                is R3Node.Expression.TypeExpression.BooleanTypeExpression -> {
+                }
+                is R3Node.Expression.TypeExpression.FloatNumberTypeExpression -> {
+
+                }
+                is R3Node.Expression.TypeExpression.NumberTypeExpression -> {
+
+                }
+                is R3Node.Expression.TypeExpression.StringTypeExpression -> {
+
+                }
+                is R3Node.Expression.VariableExpression -> {
+                    this.variableName.levelSet(parent)
+                    this.variableValue.levelSet(parent)
+                }
+                is R3Node.Program -> {
+                    for (statement in this.statements) {
+                        statement.levelSet(parent)
+                    }
+                }
+                is R3Node.Statement.ClassStatement -> {
+                    this.className.levelSet(parent)
+                    this.parameters.levelSet(this)
+                    for (r3Node in this.classBody) {
+                        r3Node.levelSet(this)
+                    }
+                }
+                is R3Node.Statement.FunctionStatement -> {
+                    this.functionName.levelSet(parent)
+                    this.parameters.levelSet(this)
+                    for (expression in this.functionBody) {
+                        expression.levelSet(this)
+                    }
+                }
+
+                is R3Node.Statement.ConstructorFunctionStatement -> {
+//                    this.functionStatement.functionName.levelSet(this)
+//                    this.functionStatement.parameters.levelSet(this)
+                    this.functionStatement.levelSet(this)
+                }
+
+                is R3Node.Expression.SignedExpression ->{
+                    this.innerExpression.levelSet(parent)
+                }
+            }
+    }
+
 
     override fun visitProgram(ctx: RuleParser.ProgramContext): R3Node {
         return ctx.statement().mapNotNull {
             visit(it)
         }.let {
-            R3Node.Program(ctx.text, it)
+            R3Node.Program(ctx.text, it).apply {
+                levelSet(null)
+            }
         }
     }
 
@@ -71,16 +211,33 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
         val params = ctx.params()?.let {
             visit(it) as R3Node.Expression.Define.Params
         } ?: R3Node.Expression.Define.Params("", emptyList())
-        val classBody = ctx.classBody()?.let {
-            it.mapNotNull {
-                visit(it)
-            }
+        val classBody = ctx.classBody()?.mapNotNull {
+            visit(it)
         } ?: emptyList()
         return R3Node.Statement.ClassStatement(
             ctx.text,
             className,
             params,
             classBody
+        )
+    }
+
+    override fun visitConstructorFunction(ctx: RuleParser.ConstructorFunctionContext): R3Node {
+            val constructorName = ctx.methodName().ID().toIdExpression() as R3Node.Expression.Define.Identifier.ID
+        val params = ctx.params()?.let {
+            visit(it) as R3Node.Expression.Define.Params
+        } ?: R3Node.Expression.Define.Params("", emptyList())
+        val functionBody = ctx.functionBody()?.mapNotNull {
+            visit(it) as R3Node.Expression
+        } ?: emptyList()
+        return R3Node.Statement.ConstructorFunctionStatement(
+            ctx.text,
+            R3Node.Statement.FunctionStatement(
+                ctx.text,
+                constructorName,
+                params,
+                functionBody
+            )
         )
     }
 
@@ -96,11 +253,14 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
         val function = ctx.function()
         val defineVariable = ctx.defineVariable()
         val defineConstVariable = ctx.defineConstVariable()
+        val defineConstructorFunctionExpression  = ctx.constructorFunction()
         return if (function != null) {
             visit(function)
         } else if (defineVariable != null) {
             visit(defineVariable)
-        } else {
+        } else if (defineConstructorFunctionExpression!=null){
+            visit(defineConstructorFunctionExpression)
+        }else {
             visit(defineConstVariable)
         }
     }
@@ -160,6 +320,16 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
         } else {
             R3Node.Expression.TypeExpression.FloatNumberTypeExpression(ctx.text, ctx.NUMBER_FLOAT().text.toDouble())
         }
+    }
+
+    override fun visitObjectPropertiesExpression(ctx: RuleParser.ObjectPropertiesExpressionContext): R3Node {
+        val objectExpression = visit(ctx.expression()) as R3Node.Expression
+        val propertiesName = ctx.ID().toIdExpression() as R3Node.Expression.Define.Identifier.ID
+        return R3Node.Expression.ObjectPropertiesExpression(
+            ctx.text,
+            objectExpression,
+            propertiesName
+        )
     }
 
     override fun visitBitOperationExpression(ctx: RuleParser.BitOperationExpressionContext): R3Node {
@@ -298,6 +468,14 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
         )
     }
 
+    override fun visitAssignExpression(ctx: RuleParser.AssignExpressionContext): R3Node {
+        return R3Node.Expression.OperateExpression.AssignOperateExpression(
+            ctx.text,
+            visit(ctx.expression(0)) as R3Node.Expression,
+            visit(ctx.expression(1)) as R3Node.Expression
+        )
+    }
+
     override fun visitCompareExpression(ctx: RuleParser.CompareExpressionContext): R3Node {
         return if (ctx.AND() != null) {
             R3Node.Expression.OperateExpression.CompareOperateExpression.AndCompareOperateExpression(
@@ -416,10 +594,6 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
     }
 
     override fun visitDefineRangeExpression(ctx: RuleParser.DefineRangeExpressionContext): R3Node {
-        return visit(ctx.rangeExpression())
-    }
-
-    override fun visitRangeExpression(ctx: RuleParser.RangeExpressionContext): R3Node {
         return R3Node.Expression.RangeExpression(
             ctx.text,
             visit(ctx.expression(0)) as R3Node.Expression,
@@ -433,7 +607,7 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
 
     override fun visitArray(ctx: RuleParser.ArrayContext): R3Node {
         val list = ctx.expression()?.mapNotNull {
-            visit(it) as R3Node.Expression.TypeExpression<*>
+            visit(it) as R3Node.Expression
         }?: emptyList()
 
         val array = list.toTypedArray()
@@ -499,6 +673,18 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
             ctx.text,
             visit(ctx.defineExpression()) as R3Node.Expression.Define.Identifier
         )
+    }
+
+    override fun visitPriorityExpression(ctx: RuleParser.PriorityExpressionContext): R3Node {
+        return visit(ctx.parenthesizedExpression())
+    }
+
+    override fun visitParenthesizedExpression(ctx: RuleParser.ParenthesizedExpressionContext): R3Node {
+        return visit(ctx.expression())
+    }
+
+    override fun visitSignedExpression(ctx: RuleParser.SignedExpressionContext): R3Node {
+        return R3Node.Expression.SignedExpression(ctx.text,visit(ctx.expression()) as R3Node.Expression)
     }
 
 

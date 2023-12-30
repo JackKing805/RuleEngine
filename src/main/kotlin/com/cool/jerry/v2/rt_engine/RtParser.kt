@@ -1,8 +1,9 @@
 package com.cool.jerry.v2.rt_engine
 
-import com.cool.jerry.v2.base.InjectMethod
+import com.cool.jerry.exception.*
+import com.cool.jerry.model.*
+import com.cool.jerry.model.InjectMethod
 import com.cool.jerry.v2.rt_engine.define.Node
-import com.cool.jerry.v2.rt_engine.exception.*
 import java.lang.StringBuilder
 import kotlin.RuntimeException
 
@@ -67,7 +68,7 @@ class RtParser {
                 if (variables.containsKey(node.id.uniqueName())) {
                     throw DulVarDefineException(node.id.name)
                 }
-                val result = parseNode(node.value, params).getValueResultElseThrow()
+                val result = parseNode(node.value, params).toValueResultElseThrow()
                 variables[node.id.uniqueName()] = result.value as Any
                 ParseResult.NoneResult
             }
@@ -96,7 +97,7 @@ class RtParser {
                 }?.let {
                     val sourceAccessible = it.isAccessible
                     it.isAccessible = true
-                    parseNode.getValueResultElseThrow().let { value ->
+                    parseNode.toValueResultElseThrow().let { value ->
                         it.set(any, value.value)
                     }
                     if (!sourceAccessible) {
@@ -112,7 +113,7 @@ class RtParser {
         return when (node) {
             is Node.Expression.IdExpression.Id -> {
                 params.find {
-                    it.name == node.uniqueName()
+                    it.paramName() == node.uniqueName()
                 }?.parseResult ?: run {
                     if (!variables.containsKey(node.uniqueName())) {
                         throw VarNotDefineException(node.name)
@@ -135,7 +136,7 @@ class RtParser {
             is Node.Expression.TypeExpression.BooleanType -> ParseResult.ValueResult.BooleanValueResult(node.value)
             is Node.Expression.TypeExpression.ArrayType -> {
                 ParseResult.ValueResult.ArrayValueResult(node.value.map {
-                    parseTypeExpression(it).getValueResultElseThrow()
+                    parseTypeExpression(it).toValueResultElseThrow()
                 }.toTypedArray())
             }
         }
@@ -148,8 +149,8 @@ class RtParser {
             is Node.Expression.TypeExpression -> parseTypeExpression(node)
 
             is Node.Expression.AddSubExpression -> {
-                val leftExpression = parseExpression(node.leftExpression, params).getValueResultElseThrow()
-                val rightExpression = parseExpression(node.rightExpression, params).getValueResultElseThrow()
+                val leftExpression = parseExpression(node.leftExpression, params).toValueResultElseThrow()
+                val rightExpression = parseExpression(node.rightExpression, params).toValueResultElseThrow()
                 val result = if (node.op == "+") {
                     //+
                     when (leftExpression) {
@@ -370,8 +371,8 @@ class RtParser {
             }
 
             is Node.Expression.MulDivExpression -> {
-                val leftExpression = parseExpression(node.leftExpression, params).getValueResultElseThrow()
-                val rightExpression = parseExpression(node.rightExpression, params).getValueResultElseThrow()
+                val leftExpression = parseExpression(node.leftExpression, params).toValueResultElseThrow()
+                val rightExpression = parseExpression(node.rightExpression, params).toValueResultElseThrow()
                 val result = if (node.op == "*") {
                     //+
                     when (leftExpression) {
@@ -671,14 +672,14 @@ class RtParser {
                     val nodeParams = callParams.map {
                         parseNode(it, params)
                     }.map {
-                        it.getValueResultElseThrow()
+                        it.toValueResultElseThrow()
                     }
                     val injectMethod = getEnvironmentMethod(methodIdExpression, nodeParams)
                     val parameters = injectMethod.method.parameters
                     val realNodeParams = nodeParams.map {
                         it.value
                     }.mapIndexed { index, any ->
-                        any?.toTargetTypeIns(parameters[index].type)
+                        any?.toTargetTypeInstance(parameters[index].type)
                     }
                     injectMethod.invokeMethod(*realNodeParams.toTypedArray()).toValueResultElseNone()
                 }
@@ -701,9 +702,9 @@ class RtParser {
                         }.mapIndexed { index, parseResult ->
                             Param(parameters[index].name, parseResult)
                         }.map {
-                            it.parseResult.getValueResultElseThrow().value
+                            it.parseResult.toValueResultElseThrow().value
                         }.mapIndexed { index, it ->
-                            it?.toTargetTypeIns(parameters[index].type)
+                            it?.toTargetTypeInstance(parameters[index].type)
                         }
                         method.invoke(value, *nodeParams.toTypedArray()).toValueResultElseNone()
                     }
@@ -714,12 +715,19 @@ class RtParser {
 //                    is ParseResult.Variable -> {
 //                        throw IllStmtException("$callIdExpression can't invoke method")
 //                    }
+                    ParseResult.OperateResult.Break -> TODO()
+                    ParseResult.OperateResult.Continue -> TODO()
+                    is ParseResult.OperateResult.Return -> TODO()
+                    is ParseResult.Define.ClassDefine -> TODO()
+                    is ParseResult.Define.ConstructorDefine -> TODO()
+                    is ParseResult.Define.FunctionDefine -> TODO()
+                    is ParseResult.Define.Variable -> TODO()
                 }
             }
 
             is Node.Expression.AndExpression -> {
-                val leftExpression = parseExpression(node.leftExpression, params).getValueResultElseThrow()
-                val rightExpression = parseExpression(node.rightExpression, params).getValueResultElseThrow()
+                val leftExpression = parseExpression(node.leftExpression, params).toValueResultElseThrow()
+                val rightExpression = parseExpression(node.rightExpression, params).toValueResultElseThrow()
 
                 if (leftExpression is ParseResult.ValueResult.BooleanValueResult && rightExpression is ParseResult.ValueResult.BooleanValueResult) {
                     ParseResult.ValueResult.BooleanValueResult(leftExpression.value && rightExpression.value)
@@ -734,14 +742,14 @@ class RtParser {
             }
 
             is Node.Expression.EqualsExpression -> {
-                val leftExpression = parseExpression(node.leftExpression, params).getValueResultElseThrow()
-                val rightExpression = parseExpression(node.rightExpression, params).getValueResultElseThrow()
+                val leftExpression = parseExpression(node.leftExpression, params).toValueResultElseThrow()
+                val rightExpression = parseExpression(node.rightExpression, params).toValueResultElseThrow()
                 ParseResult.ValueResult.BooleanValueResult(leftExpression.value == rightExpression.value)
             }
 
             is Node.Expression.OrExpression -> {
-                val leftExpression = parseExpression(node.leftExpression, params).getValueResultElseThrow()
-                val rightExpression = parseExpression(node.rightExpression, params).getValueResultElseThrow()
+                val leftExpression = parseExpression(node.leftExpression, params).toValueResultElseThrow()
+                val rightExpression = parseExpression(node.rightExpression, params).toValueResultElseThrow()
 
                 if (leftExpression is ParseResult.ValueResult.BooleanValueResult && rightExpression is ParseResult.ValueResult.BooleanValueResult) {
                     ParseResult.ValueResult.BooleanValueResult(leftExpression.value || rightExpression.value)
@@ -821,7 +829,7 @@ class RtParser {
             }
 
             is Node.Expression.ArrayAccessExpression -> {
-                val idExpression = parseExpression(node.targetExpression, params).getValueResultElseThrow()
+                val idExpression = parseExpression(node.targetExpression, params).toValueResultElseThrow()
                 if (idExpression !is ParseResult.ValueResult.ArrayValueResult) {
                     throw RuntimeException("${node.targetExpression.source} not a array")
                 }
@@ -843,7 +851,7 @@ class RtParser {
             }
             is Node.Expression.DefineArrayExpression -> {
                 val transform = node.items.map {
-                    parseNode(it,params).getValueResultElseThrow()
+                    parseNode(it,params).toValueResultElseThrow()
                 }.toTypedArray()
                 ParseResult.ValueResult.ArrayValueResult(transform)
             }
@@ -872,191 +880,8 @@ class RtParser {
         }
     }
 
-    private fun ParseResult.getValueResultElseThrow(): ParseResult.ValueResult<*> {
-        return when (this) {
-            is ParseResult.NoneResult -> throw RuntimeException("$this not a valueResult")
-            is ParseResult.ValueResult.AnyValueResult -> this
-            is ParseResult.ValueResult.FloatValueResult -> this
-            is ParseResult.ValueResult.IntValueResult -> this
-            is ParseResult.ValueResult.StringValueResult -> this
-//            is ParseResult.Variable -> value.getValueResultElseThrow()
-            is ParseResult.ValueResult.BooleanValueResult -> this
-            is ParseResult.ValueResult.ArrayValueResult -> this
-        }
-    }
 
-    private fun Any?.toValueResultElseNone(): ParseResult {
-        return if (this is Unit || this == null) {
-            ParseResult.NoneResult
-        } else {
-            this.toValueResult()
-        }
-    }
 
-    private fun Any.toValueResult(): ParseResult.ValueResult<*> {
-        return when (this) {
-            is ParseResult.ValueResult<*> ->{
-                this
-            }
 
-            is Int -> {
-                ParseResult.ValueResult.IntValueResult(this.toLong())
-            }
 
-            is Long -> {
-                ParseResult.ValueResult.IntValueResult(this)
-            }
-
-            is String -> {
-                ParseResult.ValueResult.StringValueResult(this)
-            }
-
-            is Float -> {
-                ParseResult.ValueResult.FloatValueResult(this.toDouble())
-            }
-
-            is Double -> {
-                ParseResult.ValueResult.FloatValueResult(this)
-            }
-
-            is Boolean -> {
-                ParseResult.ValueResult.BooleanValueResult(this)
-            }
-
-            is Array<*> -> {
-                ParseResult.ValueResult.ArrayValueResult(this.map {
-                    it!!.toValueResult()
-                }.toTypedArray())
-            }
-
-            is List<*> -> {
-                ParseResult.ValueResult.ArrayValueResult(this.map {
-                    it!!.toValueResult()
-                }.toTypedArray())
-            }
-
-            else -> {
-                ParseResult.ValueResult.AnyValueResult(this)
-            }
-        }
-    }
-
-    private fun Any.toTargetTypeIns(type: Class<*>): Any {
-        return when (type) {
-            Long::class.java -> {
-                try {
-                    this as Long
-                } catch (e: ClassCastException) {
-                    this.toString().toLong()
-                }
-            }
-
-            Int::class.java -> {
-                try {
-                    this as Int
-                } catch (e: ClassCastException) {
-                    this.toString().toInt()
-                }
-            }
-
-            String::class.java -> {
-                this as String
-            }
-
-            Boolean::class.java -> {
-                this as Boolean
-            }
-
-            Double::class.java -> {
-                try {
-                    this as Double
-                } catch (e: ClassCastException) {
-                    this.toString().toDouble()
-                }
-            }
-
-            Float::class.java -> {
-                try {
-                    this as Float
-                } catch (e: ClassCastException) {
-                    this.toString().toFloat()
-                }
-            }
-
-            Short::class.java -> {
-                try {
-                    this as Short
-                } catch (e: ClassCastException) {
-                    this.toString().toShort()
-                }
-            }
-
-            Byte::class.java -> {
-                this as Byte
-            }
-
-            ByteArray::class.java -> {
-                this as ByteArray
-            }
-
-            Array::class.java -> {
-                this as Array<*>
-            }
-
-            List::class.java -> {
-                this as List<*>
-            }
-
-            else -> this
-        }
-    }
-
-    sealed class ParseResult {
-        sealed class ValueResult<T>(open val value: T) : ParseResult() {
-            data class IntValueResult(override val value: Long) : ValueResult<Long>(value) {
-                fun isLong() = this.value.toString().replace("-", "").length > Int.MAX_VALUE.toString().length
-            }
-
-            data class StringValueResult(override val value: String) : ValueResult<String>(value)
-            data class FloatValueResult(override val value: Double) : ValueResult<Double>(value) {
-                fun isDouble(): Boolean {
-                    val toString = this.value.toString().replace("-", "")
-                    if (toString.contains(".")) {
-                        val maxSS = 7
-                        val suf = toString.substringAfter(".")
-                        if (suf.length > maxSS) {
-                            return true
-                        }
-                    }
-                    return false
-                }
-            }
-
-            data class BooleanValueResult(override val value: Boolean) : ValueResult<Boolean>(value)
-            data class AnyValueResult(override val value: Any) : ValueResult<Any>(value)
-            data class ArrayValueResult(override val value: Array<ValueResult<*>>) : ValueResult<Array<ValueResult<*>>>(value) {
-                override fun equals(other: Any?): Boolean {
-                    if (this === other) return true
-                    if (javaClass != other?.javaClass) return false
-
-                    other as ArrayValueResult
-
-                    return value.contentEquals(other.value)
-                }
-
-                override fun hashCode(): Int {
-                    return value.contentHashCode()
-                }
-            }
-        }
-
-        data object NoneResult : ParseResult()
-
-//        class Variable(val name: String, val value: ValueResult<*>) : ParseResult()
-    }
-
-    data class Param(
-        val name: String,
-        val parseResult: ParseResult
-    )
 }

@@ -2,10 +2,10 @@ package com.cool.jerry.v2.rt_engine
 
 import com.cool.jerry.g4.RtRuleEngine2Lexer
 import com.cool.jerry.g4.RtRuleEngine2Parser
-import com.cool.jerry.v2.base.InjectMethod
+import com.cool.jerry.model.InjectMethod
 import com.cool.jerry.v2.base.RuleEngine
 import com.cool.jerry.v2.rt_engine.define.Node
-import com.cool.jerry.v2.rt_engine.utils.Embed
+import com.cool.jerry.extern.Embed
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 

@@ -1,0 +1,700 @@
+package com.cool.jerry.v3
+
+import com.cool.jerry.model.Param
+import com.cool.jerry.model.ParseResult
+
+
+fun R3Node.haveIdEquals(name:String):Boolean{
+    when(this){
+        is R3Node.Expression.ArrayAccessExpression -> {
+            return this.array.haveIdEquals(name)
+        }
+        is R3Node.Expression.OperateExpression.AssignOperateExpression -> {
+            val a  = this.left.haveIdEquals(name)
+            if (a){
+                return true
+            }
+            return right.haveIdEquals(name)
+        }
+        is R3Node.Expression.BreakExpression -> {
+            return false
+        }
+        is R3Node.Expression.ContinueExpression -> {
+            return false
+        }
+        is R3Node.Expression.Define.Identifier.ID -> {
+            return name==text
+        }
+        is R3Node.Expression.Define.Identifier.ID_REF -> {
+            return false
+        }
+        is R3Node.Expression.Define.Params -> {
+            return false
+        }
+        is R3Node.Expression.IfExpression -> {
+            val a = this.condition.haveIdEquals(name)
+            if (a){
+                return true
+            }
+            for (expression in this.thenBody) {
+                if (expression.haveIdEquals(name)){
+                    return true
+                }
+            }
+            for (expression in this.elseBody) {
+                if (expression.haveIdEquals(name)){
+                    return true
+                }
+            }
+            return false
+        }
+        is R3Node.Expression.LoopExpression -> {
+            if (this.condition.haveIdEquals(name)){
+                return true
+            }
+            for (expression in this.loopBody) {
+                if (expression.haveIdEquals(name)){
+                    return true
+                }
+            }
+            return false
+        }
+        is R3Node.Expression.MethodCallExpression -> {
+            for (argument in arguments) {
+                if (argument.haveIdEquals(name)){
+                    return true
+                }
+            }
+            return false
+        }
+        is R3Node.Expression.ObjectMethodCallExpression -> {
+            if (this.objectExpression.haveIdEquals(name)){
+                return true
+            }
+            for (argument in this.arguments) {
+                if (argument.haveIdEquals(name)){
+                    return true
+                }
+            }
+            return false
+        }
+        is R3Node.Expression.ObjectPropertiesExpression -> {
+            if (this.objectExpression.haveIdEquals(name)){
+                return true
+            }
+            return false
+        }
+        is R3Node.Expression.OperateExpression.BitOperateExpression->{
+            if (this.left.haveIdEquals(name)){
+                return true
+            }
+            return this.right.haveIdEquals(name)
+        }
+        is R3Node.Expression.OperateExpression.CompareOperateExpression->{
+            if (this.left.haveIdEquals(name)){
+                return true
+            }
+            return this.right.haveIdEquals(name)
+        }
+        is R3Node.Expression.OperateExpression.MathAssignOperateExpression->{
+            if (this.left.haveIdEquals(name)){
+                return true
+            }
+            return this.right.haveIdEquals(name)
+        }
+        is R3Node.Expression.OperateExpression.MathOperateExpression->{
+            if (this.left.haveIdEquals(name)){
+                return true
+            }
+            return this.right.haveIdEquals(name)
+        }
+        is R3Node.Expression.OperateExpression.NumberAutoOperateExpression->{
+            return this.who.haveIdEquals(name)
+        }
+        is R3Node.Expression.RangeExpression -> {
+            if (this.start.haveIdEquals(name)){
+                return true
+            }
+            return this.end.haveIdEquals(name)
+        }
+        is R3Node.Expression.ReturnExpression -> {
+            return this.expression?.haveIdEquals(name)?:false
+        }
+        is R3Node.Expression.TypeExpression.ArrayExpression -> {
+            for (typeExpression in this.value) {
+                if (typeExpression.haveIdEquals(name)){
+                    return true
+                }
+            }
+            return false
+        }
+        is R3Node.Expression.TypeExpression.BooleanTypeExpression -> {
+            return false
+        }
+        is R3Node.Expression.TypeExpression.FloatNumberTypeExpression -> {
+            return false
+        }
+        is R3Node.Expression.TypeExpression.NumberTypeExpression -> {
+            return false
+        }
+        is R3Node.Expression.TypeExpression.StringTypeExpression -> {
+            return false
+        }
+        is R3Node.Expression.VariableExpression -> {
+            return this.variableValue.haveIdEquals(name)
+        }
+        is R3Node.Program -> {
+            for (statement in this.statements) {
+                if (statement.haveIdEquals(name)){
+                    return true
+                }
+            }
+            return false
+        }
+        is R3Node.Statement.ClassStatement -> {
+            for (r3Node in this.classBody) {
+                if (r3Node.haveIdEquals(name)){
+                    return true
+                }
+            }
+            return false
+        }
+        is R3Node.Statement.ConstructorFunctionStatement -> {
+            return this.functionStatement.haveIdEquals(name)
+        }
+        is R3Node.Statement.FunctionStatement -> {
+            for (expression in this.functionBody) {
+                if (expression.haveIdEquals(name)){
+                    return true
+                }
+            }
+            return false
+        }
+
+        is R3Node.Expression.SignedExpression -> {
+            return this.innerExpression.haveIdEquals(name)
+        }
+    }
+}
+
+@Deprecated("use version2", replaceWith = ReplaceWith("modifierOldIdToNewIdName2(oldName,newName)"))
+fun R3Node.modifierOldIdToNewIdName(oldName:String,newName:String):R3Node{
+    when(this){
+        is R3Node.Expression.ArrayAccessExpression -> {
+            copy(array = this.array.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.AssignOperateExpression -> {
+            copy(left=this.left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression, right = this.right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.BreakExpression -> {
+            this
+        }
+        is R3Node.Expression.ContinueExpression -> {
+            this
+        }
+        is R3Node.Expression.Define.Identifier.ID -> {
+            if (oldName==text){
+                val nn = text
+                this.copy(text=newName, source = source.replace(nn,newName)).apply {
+                    setParent(this@modifierOldIdToNewIdName.parent())
+                }
+            }else{
+                this
+            }
+        }
+        is R3Node.Expression.Define.Identifier.ID_REF -> {
+            this
+        }
+        is R3Node.Expression.Define.Params -> {
+            this
+        }
+        is R3Node.Expression.IfExpression -> {
+            copy(
+                condition = condition.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                thenBody = thenBody.map {
+                    it.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+                },
+                elseBody = elseBody.map {
+                    it.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+                }
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.LoopExpression -> {
+            copy(
+                condition = condition.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                loopBody = loopBody.map {
+                    it.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+                }
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.MethodCallExpression -> {
+            copy(
+                arguments=arguments.map {
+                    it.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+                }
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.ObjectMethodCallExpression -> {
+            copy(
+                objectExpression = objectExpression.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                arguments = arguments.map {
+                    it.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+                }
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.ObjectPropertiesExpression -> {
+            copy(
+                objectExpression = objectExpression.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.BitOperateExpression.BitAndOperateExpression ->{
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.BitOperateExpression.BitLeftOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.BitOperateExpression.BitOrOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.BitOperateExpression.BitRightOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.BitOperateExpression.BitXorOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.CompareOperateExpression.AndCompareOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.CompareOperateExpression.EqualCompareOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.CompareOperateExpression.LessCompareOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.CompareOperateExpression.LessEqualCompareOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.CompareOperateExpression.MoreCompareOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.CompareOperateExpression.MoreEqualCompareOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.CompareOperateExpression.NotEqualCompareOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.CompareOperateExpression.OrCompareOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathAssignOperateExpression.AddAssignOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathAssignOperateExpression.AndAssignOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathAssignOperateExpression.DivAssignOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathAssignOperateExpression.ModAssignOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathAssignOperateExpression.MulAssignOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathAssignOperateExpression.OrAssignOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathAssignOperateExpression.SubAssignOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathAssignOperateExpression.XorAssignOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathOperateExpression.AddOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathOperateExpression.DivOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathOperateExpression.ModOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathOperateExpression.MulOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.MathOperateExpression.SubOperateExpression -> {
+            copy(
+                left=left.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                right = right.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.NumberAutoOperateExpression.NumberAutoDecreaseOperateExpression -> {
+            copy(
+                who =who.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression.Define.Identifier
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.OperateExpression.NumberAutoOperateExpression.NumberAutoIncreaseOperateExpression -> {
+            copy(
+                who =who.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression.Define.Identifier
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.RangeExpression ->{
+            copy(
+                start = start.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                end = end.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.ReturnExpression -> {
+            copy(
+                expression = expression?.modifierOldIdToNewIdName(oldName,newName) as? R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.TypeExpression.ArrayExpression -> {
+            copy(
+                value = value.map {
+                    it.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+                }.toTypedArray()
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Expression.TypeExpression.BooleanTypeExpression -> {
+            this
+        }
+        is R3Node.Expression.TypeExpression.FloatNumberTypeExpression -> {
+            this
+        }
+        is R3Node.Expression.TypeExpression.NumberTypeExpression -> {
+            this
+        }
+        is R3Node.Expression.TypeExpression.StringTypeExpression -> {
+            this
+        }
+        is R3Node.Expression.VariableExpression -> {
+            copy(variableName = variableName.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression.Define.Identifier.ID, variableValue = variableValue.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Program -> {
+            copy(
+                statements = statements.map {
+                    it.modifierOldIdToNewIdName(oldName,newName)
+                }
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Statement.ClassStatement -> {
+            copy(
+                parameters= parameters.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression.Define.Params,
+                classBody = classBody.map {
+                    it.modifierOldIdToNewIdName(oldName,newName)
+                }
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Statement.ConstructorFunctionStatement -> {
+            copy(
+                functionStatement = functionStatement.modifierOldIdToNewIdName(oldName,newName) as R3Node.Statement.FunctionStatement
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+        is R3Node.Statement.FunctionStatement -> {
+            copy(
+                parameters = parameters.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression.Define.Params,
+                functionBody = functionBody.map {
+                    it.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+                }
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+
+        is R3Node.Expression.SignedExpression -> {
+            copy(
+                innerExpression = innerExpression.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+    }.let {
+        return it
+    }
+}
+
+
+fun R3Node.modifierOldIdToNewIdName2(oldName:String,newName:String):R3Node{
+    when(this){
+        is R3Node.Expression.ArrayAccessExpression -> {
+            this.array.modifierOldIdToNewIdName2(oldName,newName)
+        }
+        is R3Node.Expression.OperateExpression.AssignOperateExpression -> {
+            this.left.modifierOldIdToNewIdName2(oldName,newName)
+            this.right.modifierOldIdToNewIdName2(oldName,newName)
+        }
+        is R3Node.Expression.BreakExpression -> {
+        }
+        is R3Node.Expression.ContinueExpression -> {
+        }
+        is R3Node.Expression.Define.Identifier.ID -> {
+            if (oldName==text){
+                source = source.replace(text,newName)
+                text = newName
+            }
+        }
+        is R3Node.Expression.Define.Identifier.ID_REF -> {
+        }
+        is R3Node.Expression.Define.Params -> {
+        }
+        is R3Node.Expression.IfExpression -> {
+            condition.modifierOldIdToNewIdName2(oldName,newName)
+            thenBody.onEach {
+                it.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
+            }
+            elseBody.onEach {
+                it.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
+            }
+        }
+        is R3Node.Expression.LoopExpression -> {
+            condition.modifierOldIdToNewIdName2(oldName,newName)
+            loopBody.onEach {
+                it.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
+            }
+        }
+        is R3Node.Expression.MethodCallExpression -> {
+            arguments.onEach {
+                it.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
+            }
+        }
+        is R3Node.Expression.ObjectMethodCallExpression -> {
+            objectExpression.modifierOldIdToNewIdName2(oldName,newName)
+            arguments.onEach {
+                it.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
+            }
+        }
+        is R3Node.Expression.ObjectPropertiesExpression -> {
+            objectExpression.modifierOldIdToNewIdName2(oldName,newName)
+        }
+        is R3Node.Expression.OperateExpression.BitOperateExpression ->{
+            left.modifierOldIdToNewIdName2(oldName,newName)
+            right.modifierOldIdToNewIdName2(oldName,newName)
+        }
+        is R3Node.Expression.OperateExpression.MathAssignOperateExpression -> {
+            left.modifierOldIdToNewIdName2(oldName,newName)
+            right.modifierOldIdToNewIdName2(oldName,newName)
+        }
+        is R3Node.Expression.OperateExpression.MathOperateExpression -> {
+            left.modifierOldIdToNewIdName2(oldName,newName)
+            right.modifierOldIdToNewIdName2(oldName,newName)
+        }
+        is R3Node.Expression.OperateExpression.NumberAutoOperateExpression -> {
+            who.modifierOldIdToNewIdName2(oldName,newName)
+        }
+        is R3Node.Expression.RangeExpression ->{
+            start.modifierOldIdToNewIdName2(oldName,newName)
+            end.modifierOldIdToNewIdName2(oldName,newName)
+        }
+        is R3Node.Expression.ReturnExpression -> {
+            expression?.modifierOldIdToNewIdName2(oldName,newName)
+        }
+        is R3Node.Expression.TypeExpression.ArrayExpression -> {
+            value.onEach {
+                it.modifierOldIdToNewIdName2(oldName,newName)
+            }
+        }
+        is R3Node.Expression.TypeExpression.BooleanTypeExpression -> {
+        }
+        is R3Node.Expression.TypeExpression.FloatNumberTypeExpression -> {
+        }
+        is R3Node.Expression.TypeExpression.NumberTypeExpression -> {
+        }
+        is R3Node.Expression.TypeExpression.StringTypeExpression -> {
+        }
+        is R3Node.Expression.VariableExpression -> {
+            variableName.modifierOldIdToNewIdName2(oldName,newName)
+            variableValue.modifierOldIdToNewIdName2(oldName,newName)
+        }
+        is R3Node.Program -> {
+            statements.onEach {
+                it.modifierOldIdToNewIdName2(oldName,newName)
+            }
+        }
+        is R3Node.Statement.ClassStatement -> {
+            parameters.modifierOldIdToNewIdName2(oldName,newName)
+            classBody.onEach {
+                it.modifierOldIdToNewIdName2(oldName,newName)
+            }
+        }
+        is R3Node.Statement.ConstructorFunctionStatement -> {
+            functionStatement.modifierOldIdToNewIdName2(oldName,newName)
+        }
+        is R3Node.Statement.FunctionStatement -> {
+            parameters.modifierOldIdToNewIdName2(oldName,newName)
+            functionBody.onEach {
+                it.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
+            }
+        }
+        is R3Node.Expression.SignedExpression -> {
+            innerExpression.modifierOldIdToNewIdName2(oldName,newName)
+        }
+
+        is R3Node.Expression.OperateExpression.CompareOperateExpression->{
+            left.modifierOldIdToNewIdName2(oldName,newName)
+            right.modifierOldIdToNewIdName2(oldName,newName)
+        }
+    }
+    return this
+}
+
+

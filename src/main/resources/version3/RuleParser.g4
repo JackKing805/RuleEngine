@@ -4,8 +4,25 @@ options {
     tokenVocab = RuleLexer;
 }
 
+// 语义谓词
+@members {
+    boolean isParenthesized(String text) {
+        // 根据你的条件判断是否是括号表达式
+        // 返回 true 表示是括号表达式，false 表示不是
+        // 例如，可以检查 text 是否以 '(' 开始且以 ')' 结束
+        return text.startsWith("(") && text.endsWith(")");
+    }
+
+    boolean isMethodCall(String text) {
+        // 根据你的条件判断是否是方法调用
+        // 返回 true 表示是方法调用，false 表示不是
+        // 例如，可以检查 text 是否包含 '(' 和 ')'
+        return text.contains("(") && text.contains(")");
+    }
+}
+
 program
-    : statement*
+    : (statement NEWLINE?)*
     ;
 
 statement
@@ -20,6 +37,10 @@ methodName
 
 function
     : 'def' methodName '(' params? ')' '{' functionBody* '}'
+    ;
+
+constructorFunction
+    : methodName '(' params? ')' '{' functionBody* '}'
     ;
 
 paramName
@@ -45,6 +66,7 @@ classBody
     : function
     | defineVariable
     | defineConstVariable
+    | constructorFunction
     ;
 
 defineVariable
@@ -96,14 +118,17 @@ continueExpression
     : CONTINUE
     ;
 
-rangeExpression
-    : '(' expression '->' expression ')'
-    ;
+//rangeExpression
+//    : expression '->' expression
+//    ;
 
 methodCallExpression
     : ID '(' (expression (',' expression)*)? ')'
     ;
 
+parenthesizedExpression
+    : '(' expression ')'
+    ;
 
 defineExpression
     : ID
@@ -123,7 +148,10 @@ numberAutoIncreaseReduceExpression
     ;
 
 expression
-    : defineExpression                                                          #DefineNameExpression
+    : methodCallExpression                                                      #CallMethodExpression
+    | parenthesizedExpression                                                   #PriorityExpression
+    | expression '.' methodCallExpression                                       #ObjectMethodCallExpression
+    | defineExpression                                                          #DefineNameExpression
     | typeExpression                                                            #DefineTypeExpression
     | array                                                                     #ArrayExpression
     | expression '[' NUMBER ']'                                                 #ArrayAccessExpression
@@ -132,6 +160,7 @@ expression
     | expression op=(BIT_LEFT | BIT_RIGHT | '&' | '|' | '^') expression         #BitOperationExpression
     | expression op=('*'|'/'|'%') expression                                    #MulDivYuExpression
     | expression op=('+'|'-') expression                                        #AddSubExpression
+    | expression '=' expression                                                 #AssignExpression
     | expression op=ADD_ASSIGN expression                                       #AddAssignExpression
     | expression op=SUB_ASSIGN expression                                       #SubAssignExpression
     | expression op=MUL_ASSIGN expression                                       #MulAssignExpression
@@ -143,10 +172,10 @@ expression
     | expression op=('&&' | '||' | '==' |'!=' | '>=' | '<=' | '<' | '>') expression         #CompareExpression
     | ifExpression                                                              #DefineIfExpression
     | LOOP expression TO ID '{' loopBody* '}'                                   #LoopExpression
-    | rangeExpression                                                           #DefineRangeExpression
-    | expression '.' methodCallExpression                                       #ObjectMethodCallExpression
-    | methodCallExpression                                                      #CallMethodExpression
+    | expression '->' expression                                                #DefineRangeExpression
     | numberAutoIncreaseReduceExpression                                        #NumberAutoExpression
+    | expression '.' ID                                                         #ObjectPropertiesExpression
+    | '-' expression                                                            #SignedExpression
     ;
 
 
