@@ -21,8 +21,12 @@ options {
     }
 }
 
+//program
+//    : (statement NEWLINE?)*
+//    ;
+
 program
-    : (statement NEWLINE?)*
+    : statement*
     ;
 
 statement
@@ -88,10 +92,16 @@ ifExpression
 
 ifThenBody
     : expression
+    | breakExpression
+    | returnExpression
+    | returnEmptyExpression
     ;
 
 ifElseBody
     : expression
+    | breakExpression
+    | returnExpression
+    | returnEmptyExpression
     ;
 
 loopBody

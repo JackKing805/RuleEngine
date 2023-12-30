@@ -27,3 +27,47 @@
 
 # antlr 学习 [https://zhuanlan.zhihu.com/p/347329881]
 # antlr 学习2 [https://daichangya.github.io/antlr4-doc/#/?id=%e5%be%ae%e4%bf%a1%e5%85%ac%e4%bc%97%e5%8f%b7]
+
+
+
+# VERSION 3
+
+```code
+    def a = 1
+    def a = [1,2,3]
+    
+    def class C(cc,cc1){
+        def a = 1
+        def a = [1,2,3]
+        
+        C(cc,cc1){
+        
+        }
+        
+        def fun View(a){
+            if(a==1){
+                return 1
+            }else{
+                
+            }
+        
+            return a
+        }
+    }
+    
+    
+    def array = 0->5
+    
+    loop array to item{
+        log(item)
+    }
+    
+    a+=2
+    def c = 1+1+(2-6)
+    
+    sleep(1000)
+    
+    
+    def time = currentTimestamp()
+    log(time)
+```

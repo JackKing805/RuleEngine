@@ -550,11 +550,11 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
     }
 
     override fun visitIfThenBody(ctx: RuleParser.IfThenBodyContext): R3Node {
-        return visit(ctx.expression())
+        return visit(ctx.expression()?:ctx.breakExpression()?:ctx.returnExpression()?:ctx.returnEmptyExpression())
     }
 
     override fun visitIfElseBody(ctx: RuleParser.IfElseBodyContext): R3Node {
-        return visit(ctx.expression())
+        return visit(ctx.expression()?:ctx.breakExpression()?:ctx.returnExpression()?:ctx.returnEmptyExpression())
     }
 
     override fun visitLoopExpression(ctx: RuleParser.LoopExpressionContext): R3Node {

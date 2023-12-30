@@ -37,47 +37,9 @@ import com.cool.jerry.v3.R3Node
 
 
 fun main(args: Array<String>) {
-//    val program = """
-//        def class asdan(asda,asda){
-//            def a = 123
-//            const def b = 456
-//
-//            def asd(dsd,wqeq){
-//                def array = [1,2,3,4,5,6,7,8,9]
-//                def item = array[0]
-//
-//                loop array to item {
-//                    break
-//                }
-//                return
-//            }
-//        }
-//
-//        asdan(123,456)
-//        a.dwe(123,123)
-//
-//        a.wd = 123
-//    """.trimIndent()
-
-//    val list = mutableListOf(1,2,3,4)
-//    println(list)
-//    testModifier(list)
-//    println(list)
-////    testModifier2(list)
-////    println(list)
-
     testParse()
 }
 
-private fun testModifier(list: MutableList<Int>) {
-    val list2 = mutableListOf(*list.toTypedArray())
-    list2[0] = 12312
-//    testModifier2(list)
-}
-
-private fun testModifier2(list: MutableList<Int>) {
-    list[1] = 3453453
-}
 
 private fun testParse() {
 //    val program = """
@@ -121,10 +83,11 @@ private fun testParse() {
         def class A(a){
           def c(){
             def value2 = 0
-            loop 0->2 to a {
-                sleep(1000)
-                log("倒计时：" + a)
-                a += a*2
+            loop 0->2 to b {
+              sleep(100)
+                
+                log("倒计时：" + b)
+                a += (b*2)
             }
             log(a)
           }

@@ -3,13 +3,13 @@ package com.cool.jerry.model
 import com.cool.jerry.v3.R3Node
 
 sealed class ParseResult {
-    sealed class ValueResult<T>(open val value: T) : ParseResult() {
-        data class IntValueResult(override val value: Long) : ValueResult<Long>(value) {
+    sealed class ValueResult<T>(open var value: T) : ParseResult() {
+        data class IntValueResult(override var value: Long) : ValueResult<Long>(value) {
             fun isLong() = this.value.toString().replace("-", "").length > Int.MAX_VALUE.toString().length
         }
 
-        data class StringValueResult(override val value: String) : ValueResult<String>(value)
-        data class FloatValueResult(override val value: Double) : ValueResult<Double>(value) {
+        data class StringValueResult(override var value: String) : ValueResult<String>(value)
+        data class FloatValueResult(override var value: Double) : ValueResult<Double>(value) {
             fun isDouble(): Boolean {
                 val toString = this.value.toString().replace("-", "")
                 if (toString.contains(".")) {
@@ -23,9 +23,9 @@ sealed class ParseResult {
             }
         }
 
-        data class BooleanValueResult(override val value: Boolean) : ValueResult<Boolean>(value)
-        data class AnyValueResult(override val value: Any) : ValueResult<Any>(value)
-        data class ArrayValueResult(override val value: Array<ValueResult<*>>) :
+        data class BooleanValueResult(override var value: Boolean) : ValueResult<Boolean>(value)
+        data class AnyValueResult(override var value: Any) : ValueResult<Any>(value)
+        data class ArrayValueResult(override var value: Array<ValueResult<*>>) :
             ValueResult<Array<ValueResult<*>>>(value) {
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true

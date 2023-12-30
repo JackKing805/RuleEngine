@@ -166,8 +166,8 @@ fragment Name: [a-zA-Z_][a-zA-Z0-9_]*;
 NEWLINE : '\r'? '\n' ;
 
 //定义注释
-WS: [ \t\r\n\u000C]+ -> channel(HIDDEN);
+WS: [ \t\r\n\u000C]+ -> skip;
 
-COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
+COMMENT: '/*' .*? '*/' -> skip;
 
-LINE_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN);
+LINE_COMMENT: '//' ~[\r\n]* -> skip;
