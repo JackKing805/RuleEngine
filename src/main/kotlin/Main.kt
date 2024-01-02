@@ -1,6 +1,9 @@
 import com.cool.jerry.v2.rt_engine.RtRuleEngine
 import com.cool.jerry.v3.R3Engine
 import com.cool.jerry.v3.R3Node
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 
 //版本2测试代码
@@ -42,63 +45,53 @@ fun main(args: Array<String>) {
 
 
 private fun testParse() {
-//    val program = """
-//          def class dd(asd,wqe){
-//               dd(asd,wqe){
-//
-//               }
-//
-//               def asd(asdas,asda){
-//                    a.wd = 123
-//                    if(1==1){
-//                        def c= 123
-//                    }else{
-//                        a
-//                    }
-//
-//                    loop a to c {
-//
-//                        continue
-//                    }
-//
-//                    call()
-//                    a.call()
-//
-//                    def array = [1,123]
-//                    return array[0]
-//                }
-//          }
-//
-//        def a = dd()
-//
-//        def c = false
-//        false
-//        1
-//        call()
-//        a.call()
-//    """.trimIndent()
-
     val program = """
-        def value = 0
-        def class A(a){
-          def c(){
-            def value2 = 0
-            loop 0->2 to b {
-              sleep(100)
-                
-                log("倒计时：" + b)
-                a += (b*2)
+        def class A(){
+            const def name = "a"
+       
+        
+            def printA(){
+                println("i'm "+name*3)
             }
-            log(a)
-          }
         }
         
-        def a = A(value)
-        a.c()
-        log(value)
+        def class B(){
+            def  printB(){
+                return @a+9*8
+            }
+        }
+        
+        def c = A()
+        c.printA()
+
+        
+        println(B().printB() + 8)
+        @b.printA()
+       
+        println(c.name)
+        
+        @b.getB().printB()
     """
     val visitor = R3Engine()
     visitor.setEnvironment("a", 4)
-    val result = visitor.execute(program)
+    visitor.setEnvironment("b", A())
+    runBlocking {
+        visitor.execute(program).let {
+//            println(it)
+        }
+    }
 //    println(result)
+}
+
+class A{
+    fun printA(){
+        println("fuck a")
+    }
+    fun getB() = B()
+}
+
+class B(){
+    fun printB(){
+        println("fuck B")
+    }
 }

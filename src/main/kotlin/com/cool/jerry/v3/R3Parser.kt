@@ -46,7 +46,7 @@ class R3Parser {
         } ?: throw NotDefineMethodException(key)
     }
 
-    fun parse(
+    suspend fun parse(
         node: R3Node,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -89,7 +89,7 @@ class R3Parser {
         }
     }
 
-    private fun parseDefine(
+    private suspend fun parseDefine(
         node: R3Node.Expression.Define,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -106,7 +106,7 @@ class R3Parser {
         }
     }
 
-    private fun parseBitOperate(
+    private suspend fun parseBitOperate(
         node: R3Node.Expression.OperateExpression.BitOperateExpression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -173,7 +173,7 @@ class R3Parser {
         }
     }
 
-    private fun parseCompareOperate(
+    private suspend fun parseCompareOperate(
         node: R3Node.Expression.OperateExpression.CompareOperateExpression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -298,7 +298,7 @@ class R3Parser {
         }
     }
 
-    private fun parseMathAssignOperate(
+    private suspend fun parseMathAssignOperate(
         node: R3Node.Expression.OperateExpression.MathAssignOperateExpression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -498,7 +498,7 @@ class R3Parser {
         return ParseResult.NoneResult
     }
 
-    private fun parseMathOperate(
+    private suspend fun parseMathOperate(
         node: R3Node.Expression.OperateExpression.MathOperateExpression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1109,7 +1109,7 @@ class R3Parser {
         }
     }
 
-    private fun parseNumberAutoOperate(
+    private suspend fun parseNumberAutoOperate(
         node: R3Node.Expression.OperateExpression.NumberAutoOperateExpression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1131,7 +1131,7 @@ class R3Parser {
         return ParseResult.NoneResult
     }
 
-    private fun parseOperate(
+    private suspend fun parseOperate(
         node: R3Node.Expression.OperateExpression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1169,7 +1169,7 @@ class R3Parser {
         }
     }
 
-    private fun parseType(
+    private suspend fun parseType(
         node: R3Node.Expression.TypeExpression<*>,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1189,7 +1189,7 @@ class R3Parser {
         }
     }
 
-    private fun parseExpression(
+    private suspend fun parseExpression(
         node: R3Node.Expression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1215,11 +1215,15 @@ class R3Parser {
 
                     is R3Node.Expression.ObjectPropertiesExpression -> {
                         val objectHolder = parse(node.left.objectExpression, scopeParams, classes, functions)
-                        objectHolder::class.java.declaredFields.find {
-                            it.name == node.left.propertiesName.text
-                        }?.let {
-                            it.isAccessible = true
-                            it.set(objectHolder, value.value!!)
+                        if (objectHolder is ParseResult.ValueResult.AnyValueResult && objectHolder.value is ClassEnvironmentDefine){
+                            reAssignLeftValue(node.left.propertiesName,value.value!!,(objectHolder.value as ClassEnvironmentDefine).scopeParams)
+                        }else{
+                            objectHolder::class.java.declaredFields.find {
+                                it.name == node.left.propertiesName.text
+                            }?.let {
+                                it.isAccessible = true
+                                it.set(objectHolder, value.value!!)
+                            }
                         }
                     }
 
@@ -1351,8 +1355,6 @@ class R3Parser {
                     )
                 } else {
                     //判断是否是调用了类的创建方法
-
-                    //TODO 目前的问题是类参数是复制的，改变参数值后不会改变源参数的值，想个办法解决,另一个问题是传入的参数名字和外面定义的名字不一样，不能知道该参数的原值是多少，所以没办法改变原值
                     val findClassCreate = classes.find {
                         val isClassInitConstructor = it.classStatement.className.text == method &&
                                 it.classStatement.parameters.parameters.size == node.arguments.size
@@ -1422,6 +1424,13 @@ class R3Parser {
                                 scopeParamsCopy,
                             )
                         )
+//                            .let {
+//                            ParseResult.Define.Variable(
+//                                method,
+//                                it.toValueResult(),
+//                                false
+//                            )
+//                        }
                     } else {
                         //调用系统函数
 
@@ -1453,6 +1462,7 @@ class R3Parser {
             }
 
             is R3Node.Expression.ObjectMethodCallExpression -> {
+                //todo 如果对定义的class中属性重新进行赋值，值并没有改变
                 val objectDefine =
                     parse(node.objectExpression, scopeParams, classes, functions).toValueResultElseThrow()
                 val methodDefine = node.methodName.text
@@ -1488,18 +1498,25 @@ class R3Parser {
             is R3Node.Expression.ObjectPropertiesExpression -> {
                 val objectDefine =
                     parse(node.objectExpression, scopeParams, classes, functions).toValueResultElseThrow()
+                val value = objectDefine.value!!
                 val propertiesName = node.propertiesName.text
-                (
-                        objectDefine.value!!::class.java.declaredFields.find {
-                            it.name == propertiesName
-                        }?.let {
-                            it.isAccessible = true
-                            it
-                        }?.get(objectDefine.value) ?: throw RefNotDefinePropertiesException(
-                            objectDefine.value!!::class.java.name,
-                            propertiesName
-                        )
-                        ).toValueResult()
+                if (value is ClassEnvironmentDefine) {
+                    value.scopeParams.find {
+                        it.paramName() == propertiesName
+                    }?.parseResult?:throw RuntimeException("${node.objectExpression.source} not define properties:$propertiesName")
+                }else{
+                    (
+                            value::class.java.declaredFields.find {
+                                it.name == propertiesName
+                            }?.let {
+                                it.isAccessible = true
+                                it
+                            }?.get(value) ?: throw RefNotDefinePropertiesException(
+                                value::class.java.name,
+                                propertiesName
+                            )
+                            ).toValueResult()
+                }
             }
 
             is R3Node.Expression.OperateExpression -> parseOperate(node, scopeParams, classes, functions)
@@ -1557,7 +1574,7 @@ class R3Parser {
         }
     }
 
-    private fun parseProgram(
+    private suspend fun parseProgram(
         node: R3Node.Program,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1570,7 +1587,7 @@ class R3Parser {
         return result
     }
 
-    private fun parseStatement(
+    private suspend fun parseStatement(
         node: R3Node.Statement,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1609,7 +1626,7 @@ class R3Parser {
     }
 
 
-    private fun List<R3Node.Expression>.convertArguments(
+    private suspend fun List<R3Node.Expression>.convertArguments(
         autalParametersNames: List<String>,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1641,7 +1658,7 @@ class R3Parser {
      * @param arguments 传入的实际参数值
      * @param scopeParams 当前上下文的环境变量
      */
-    private fun R3Node.Statement.FunctionStatement.execute(
+    private suspend fun R3Node.Statement.FunctionStatement.execute(
         arguments: List<R3Node.Expression>,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1665,7 +1682,8 @@ class R3Parser {
 //        }.toMutableList()
 
 //        asdas
-        arguments.convertArguments(parameters.parameters.map { it.text }, scopeParams, classes, functions).replaceScopeParams(scopeParams,REPLACE)
+        arguments.convertArguments(parameters.parameters.map { it.text }, scopeParams, classes, functions)
+            .replaceScopeParams(scopeParams, REPLACE)
 
 //        argumentsConvert.replaceScopeParams(scopeParams, REPLACE)
 
@@ -1711,7 +1729,7 @@ class R3Parser {
         return functionBody.execute(scopeParams, classes, functions, true, false, true)
     }
 
-    private fun MutableList<R3Node.Expression>.execute(
+    private suspend fun MutableList<R3Node.Expression>.execute(
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
         functions: MutableList<ParseResult.Define.FunctionDefine>,
@@ -1849,7 +1867,6 @@ class R3Parser {
         }
     }
 
-
     /**
      * 重新对环境中的变量进行赋值
      */
@@ -1861,14 +1878,21 @@ class R3Parser {
         when (id) {
             is R3Node.Expression.Define.Identifier.ID -> {
                 scopeParams.find { id.text == it.paramName() }?.let { p ->
+                    if (p.parseResult is ParseResult.Define.Variable && (p.parseResult as ParseResult.Define.Variable).isConst){
+                        throw RuntimeException("${p.paramName()} is const, can't modifier")
+                    }
+
                     scopeParams.indexOf(p).takeIf { index -> index != -1 }?.let { index ->
-                        if (value.javaClass != p.parseResult.toValueResultElseThrow().value!!.javaClass) {
-                            throw RuntimeException("setLeft,but value type is change")
+                        if (!isSameClass(value::class.java,p.parseResult.toValueResultElseThrow().value!!::class.java)) {
+//                        if (!value.javaClass.isAssignableFrom(p.parseResult.toValueResultElseThrow().value!!.javaClass)) {
+                            throw RuntimeException("setLeft,but value type is change:${id.source}")
                         }
                         val indexValue = scopeParams[index].parseResult.toValueResultElseThrow()
-                        when(indexValue) {
+                        when (indexValue) {
                             is ParseResult.ValueResult.AnyValueResult -> indexValue.value = value
-                            is ParseResult.ValueResult.ArrayValueResult -> indexValue.value = value as Array<ParseResult.ValueResult<*>>
+                            is ParseResult.ValueResult.ArrayValueResult -> indexValue.value =
+                                value as Array<ParseResult.ValueResult<*>>
+
                             is ParseResult.ValueResult.BooleanValueResult -> indexValue.value = value as Boolean
                             is ParseResult.ValueResult.FloatValueResult -> indexValue.value = value as Double
                             is ParseResult.ValueResult.IntValueResult -> indexValue.value = value as Long
@@ -1888,6 +1912,26 @@ class R3Parser {
                     }
                     environments[id.text] = value
                 } ?: throw RuntimeException("${id.text} not define before")
+            }
+        }
+    }
+
+    private fun isSameClass(clazz1:Class<*>,clazz2: Class<*>): Boolean {
+        return when (clazz1) {
+            Int::class.java,
+            Long::class.java -> {
+                clazz2 == Int::class.java ||
+                        clazz2 == Long::class.java
+            }
+
+            Float::class.java,
+            Double::class.java -> {
+                clazz2 == Float::class.java ||
+                        clazz2 == Double::class.java
+            }
+
+            else -> {
+                clazz1.isAssignableFrom(clazz2)
             }
         }
     }

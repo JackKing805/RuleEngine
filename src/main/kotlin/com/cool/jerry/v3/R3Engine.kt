@@ -4,6 +4,9 @@ import com.cool.jerry.extern.Embed
 import com.cool.jerry.model.InjectMethod
 import com.cool.jerry.version3.RuleLexer
 import com.cool.jerry.version3.RuleParser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 
@@ -33,13 +36,19 @@ class R3Engine {
         r3Parser.reset()
 
         //注入常用方法
-        r3Parser.setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log", String::class.java)))
-        r3Parser.setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log", Int::class.java)))
-        r3Parser.setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log", Long::class.java)))
-        r3Parser.setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log", Boolean::class.java)))
-        r3Parser.setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log", Float::class.java)))
-        r3Parser.setEnvironmentMethod(InjectMethod("log", Embed::class.java.getMethod("log", Double::class.java)))
-        r3Parser.setEnvironmentMethod(InjectMethod("currentTimestamp", Embed::class.java.getMethod("currentTimestamp")))
+        r3Parser.setEnvironmentMethod(InjectMethod("println", Embed::class.java.getMethod("logln", String::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("println", Embed::class.java.getMethod("logln", Int::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("println", Embed::class.java.getMethod("logln", Long::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("println", Embed::class.java.getMethod("logln", Boolean::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("println", Embed::class.java.getMethod("logln", Float::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("println", Embed::class.java.getMethod("logln", Double::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("print", Embed::class.java.getMethod("log", String::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("print", Embed::class.java.getMethod("log", Int::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("print", Embed::class.java.getMethod("log", Long::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("print", Embed::class.java.getMethod("log", Boolean::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("print", Embed::class.java.getMethod("log", Float::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("print", Embed::class.java.getMethod("log", Double::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("currentTimestamp", Embed::class.java.getMethod("currentTime")))
         r3Parser.setEnvironmentMethod(InjectMethod("uuid", Embed::class.java.getMethod("uuid")))
         r3Parser.setEnvironmentMethod(InjectMethod("sleep", Embed::class.java.getMethod("sleep",Long::class.java)))
         r3Parser.setEnvironmentMethod(InjectMethod("randomInt", Embed::class.java.getMethod("randomInt", Boolean::class.java)))
@@ -55,7 +64,7 @@ class R3Engine {
         r3Parser.setEnvironmentMethod(environmentMethods)
     }
 
-    fun execute(rule: String): R3Node {
+    suspend fun execute(rule: String): R3Node {
         val visit = visit(rule)
         val r3Parser = R3Parser()
         initR3(r3Parser)

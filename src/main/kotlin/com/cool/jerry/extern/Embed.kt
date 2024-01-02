@@ -7,8 +7,38 @@ import java.util.UUID
  */
 object Embed {
     @JvmStatic
-    fun log(msg:String){
+    fun logln(msg:String){
         println(msg)
+    }
+
+    @JvmStatic
+    fun logln(msg:Int){
+        logln(msg.toString())
+    }
+
+    @JvmStatic
+    fun logln(msg:Long){
+        logln(msg.toString())
+    }
+
+    @JvmStatic
+    fun logln(msg:Boolean){
+        logln(msg.toString())
+    }
+
+    @JvmStatic
+    fun logln(msg:Float){
+        logln(msg.toString())
+    }
+
+    @JvmStatic
+    fun logln(msg:Double){
+        logln(msg.toString())
+    }
+
+    @JvmStatic
+    fun log(msg:String){
+        print(msg)
     }
 
     @JvmStatic
@@ -37,7 +67,7 @@ object Embed {
     }
 
     @JvmStatic
-    fun currentTimestamp():Long{
+    fun currentTime():Long{
         return System.currentTimeMillis()
     }
 
