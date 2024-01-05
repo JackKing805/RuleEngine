@@ -1,12 +1,11 @@
 package com.cool.jerry.v3
 
 import com.cool.jerry.extern.Embed
+import com.cool.jerry.model.ExecuteResult
 import com.cool.jerry.model.InjectMethod
+import com.cool.jerry.model.ParseResult
 import com.cool.jerry.version3.RuleLexer
 import com.cool.jerry.version3.RuleParser
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 
@@ -53,6 +52,7 @@ class R3Engine {
         r3Parser.setEnvironmentMethod(InjectMethod("sleep", Embed::class.java.getMethod("sleep",Long::class.java)))
         r3Parser.setEnvironmentMethod(InjectMethod("randomInt", Embed::class.java.getMethod("randomInt", Boolean::class.java)))
         r3Parser.setEnvironmentMethod(InjectMethod("toString", Embed::class.java.getMethod("toString", Any::class.java)))
+        r3Parser.setEnvironmentMethod(InjectMethod("currentThread", Embed::class.java.getMethod("currentThread")))
 
 
         //注入常用变量
@@ -64,12 +64,27 @@ class R3Engine {
         r3Parser.setEnvironmentMethod(environmentMethods)
     }
 
-    suspend fun execute(rule: String): R3Node {
+    suspend fun execute(rule: String): ExecuteResult {
         val visit = visit(rule)
         val r3Parser = R3Parser()
         initR3(r3Parser)
-        r3Parser.parse(visit, mutableListOf(), mutableListOf(), mutableListOf())
-        return visit
+        val result = when(val parseResult = r3Parser.parse(visit, mutableListOf(), mutableListOf(), mutableListOf())){
+            is ParseResult.Define.ClassDefine -> null
+            is ParseResult.Define.ConstructorDefine -> null
+            is ParseResult.Define.FunctionDefine -> null
+            is ParseResult.Define.Variable -> null
+            ParseResult.NoneResult -> null
+            ParseResult.OperateResult.Break -> null
+            ParseResult.OperateResult.Continue -> null
+            is ParseResult.OperateResult.Return -> parseResult.value!!.value
+            is ParseResult.ValueResult.AnyValueResult -> parseResult.value
+            is ParseResult.ValueResult.ArrayValueResult -> parseResult.value
+            is ParseResult.ValueResult.BooleanValueResult -> parseResult.value
+            is ParseResult.ValueResult.FloatValueResult -> parseResult.value
+            is ParseResult.ValueResult.IntValueResult -> parseResult.value
+            is ParseResult.ValueResult.StringValueResult -> parseResult.value
+        }
+        return ExecuteResult(visit,result)
     }
 
     private fun visit(rule: String): R3Node {

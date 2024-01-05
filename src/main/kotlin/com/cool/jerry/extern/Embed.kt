@@ -1,6 +1,7 @@
 package com.cool.jerry.extern
 
 import java.util.UUID
+import kotlin.coroutines.CoroutineContext
 
 /**
  * 内嵌方法
@@ -96,5 +97,10 @@ object Embed {
     @JvmStatic
     fun sleep(timeMill:Long){
         Thread.sleep(timeMill)
+    }
+
+    @JvmStatic
+    fun currentThread():String{
+        return Thread.currentThread().toString()
     }
 }

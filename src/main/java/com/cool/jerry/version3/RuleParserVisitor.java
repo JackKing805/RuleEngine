@@ -190,6 +190,12 @@ public interface RuleParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitNumberAutoReduceExpression(RuleParser.NumberAutoReduceExpressionContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link RuleParser#lamdaExpressionDefine}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLamdaExpressionDefine(RuleParser.LamdaExpressionDefineContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code ConstVariableExpression}
 	 * labeled alternative in {@link RuleParser#expression}.
 	 * @param ctx the parse tree
@@ -364,6 +370,13 @@ public interface RuleParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitArrayExpression(RuleParser.ArrayExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code LamdaExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLamdaExpression(RuleParser.LamdaExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code ArrayAccessExpression}
 	 * labeled alternative in {@link RuleParser#expression}.

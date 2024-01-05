@@ -308,6 +308,16 @@ public interface RuleParserListener extends ParseTreeListener {
 	 */
 	void exitNumberAutoReduceExpression(RuleParser.NumberAutoReduceExpressionContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link RuleParser#lamdaExpressionDefine}.
+	 * @param ctx the parse tree
+	 */
+	void enterLamdaExpressionDefine(RuleParser.LamdaExpressionDefineContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuleParser#lamdaExpressionDefine}.
+	 * @param ctx the parse tree
+	 */
+	void exitLamdaExpressionDefine(RuleParser.LamdaExpressionDefineContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code ConstVariableExpression}
 	 * labeled alternative in {@link RuleParser#expression}.
 	 * @param ctx the parse tree
@@ -607,6 +617,18 @@ public interface RuleParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitArrayExpression(RuleParser.ArrayExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code LamdaExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterLamdaExpression(RuleParser.LamdaExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code LamdaExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitLamdaExpression(RuleParser.LamdaExpressionContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code ArrayAccessExpression}
 	 * labeled alternative in {@link RuleParser#expression}.

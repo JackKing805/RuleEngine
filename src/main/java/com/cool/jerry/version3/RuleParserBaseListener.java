@@ -365,6 +365,18 @@ public class RuleParserBaseListener implements RuleParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterLamdaExpressionDefine(RuleParser.LamdaExpressionDefineContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLamdaExpressionDefine(RuleParser.LamdaExpressionDefineContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterConstVariableExpression(RuleParser.ConstVariableExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -660,6 +672,18 @@ public class RuleParserBaseListener implements RuleParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitArrayExpression(RuleParser.ArrayExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLamdaExpression(RuleParser.LamdaExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLamdaExpression(RuleParser.LamdaExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

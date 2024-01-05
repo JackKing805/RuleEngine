@@ -1345,6 +1345,22 @@ class R3Parser {
 
                 //internal function
                 val functionStatement = functions.find { it.functionStatement.functionName.text == method }
+                val lambdaExpression = scopeParamsCopy.filter {
+                    val re = it.parseResult
+                    re is ParseResult.Define.Variable &&
+                            re.value is ParseResult.ValueResult.AnyValueResult &&
+                            re.value.value is ParseResult.Define.FunctionDefine &&
+                            (re.value.value as ParseResult.Define.FunctionDefine).functionStatement.parameters.parameters.size == node.arguments.size
+                }.find {
+                    method == it.paramName()
+                }?:scopeParamsCopy.filter {
+                    val re = it.parseResult
+                            re is ParseResult.ValueResult.AnyValueResult &&
+                            re.value is ParseResult.Define.FunctionDefine &&
+                                    (re.value as ParseResult.Define.FunctionDefine).functionStatement.parameters.parameters.size == node.arguments.size
+                }.find {
+                    method==it.paramName()
+                }
                 if (functionStatement != null) {
                     return functionStatement.functionStatement.execute(
                         node.arguments,
@@ -1353,7 +1369,15 @@ class R3Parser {
                         functions,
                         true
                     )
-                } else {
+                } else if (lambdaExpression!=null){
+                    return (lambdaExpression.parseResult.toValueResult().value as ParseResult.Define.FunctionDefine).functionStatement.execute(
+                        node.arguments,
+                        scopeParamsCopy,
+                        classes,
+                        functions,
+                        true
+                    )
+                }else {
                     //判断是否是调用了类的创建方法
                     val findClassCreate = classes.find {
                         val isClassInitConstructor = it.classStatement.className.text == method &&
@@ -1462,7 +1486,6 @@ class R3Parser {
             }
 
             is R3Node.Expression.ObjectMethodCallExpression -> {
-                //todo 如果对定义的class中属性重新进行赋值，值并没有改变
                 val objectDefine =
                     parse(node.objectExpression, scopeParams, classes, functions).toValueResultElseThrow()
                 val methodDefine = node.methodName.text
@@ -1571,6 +1594,47 @@ class R3Parser {
                     is ParseResult.ValueResult.StringValueResult -> throw RuntimeException("signed Expr must be a Number:${node.source}")
                 }
             }
+
+            is R3Node.Expression.LambdaExpression -> {
+//                val scopeParamsCopy = mutableListOf(*scopeParams.toTypedArray())
+//
+//                val arguments =  mutableListOf<Param>()
+//                for (parameter in node.parameters.parameters) {
+//                    val findParams = scopeParamsCopy.find { it.paramName()==parameter.text }?:throw NullPointerException("${parameter.text} not define before")
+//                    if(findParams.parseResult !is ParseResult.ValueResult<*>){
+//                        throw RuntimeException("${parameter.text} not a variable")
+//                    }
+//                    arguments.add(findParams)
+//                }
+//
+//                arguments.replaceScopeParams(scopeParamsCopy,true)
+//
+//                node.functionBody.toMutableList().execute(
+//                    scopeParamsCopy,
+//                    classes,
+//                    functions,
+//                    true,
+//                    true,
+//                    true
+//                )
+
+                val functionName = "LambdaExpression_" + System.currentTimeMillis() + "_" + UUID.randomUUID() + "_Define"
+                ParseResult.Define.FunctionDefine(
+                    R3Node.Statement.FunctionStatement(
+                        node.source,
+                        R3Node.Expression.Define.Identifier.ID(
+                            functionName,
+                            functionName
+                        ).apply {
+                                setParent(node.parent())
+                        },
+                        node.parameters,
+                        node.functionBody
+                    ).apply {
+                        setParent(node.parent())
+                    }
+                )
+            }
         }
     }
 
@@ -1612,6 +1676,10 @@ class R3Parser {
             }
 
             is R3Node.Statement.FunctionStatement -> {
+                val find = injectMethods.find { it.name == node.functionName.text && it.method.parameterCount == node.parameters.parameters.size }
+                if (find!=null){
+                    throw RuntimeException("${node.source} is override injectMethod,please modifier name or add sub parameters size")
+                }
                 ParseResult.Define.FunctionDefine(node)
             }
 

@@ -1,8 +1,4 @@
-import com.cool.jerry.v2.rt_engine.RtRuleEngine
 import com.cool.jerry.v3.R3Engine
-import com.cool.jerry.v3.R3Node
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 
@@ -39,59 +35,41 @@ import kotlinx.coroutines.runBlocking
 //
 
 
+//todo 新增：lambda表达式，参数可以传递lambda表达式，变量可以定义为lambda表达式
 fun main(args: Array<String>) {
     testParse()
 }
 
-
 private fun testParse() {
     val program = """
-        def class A(){
-            const def name = "a"
-       
+        def class Context(){
+            def a = true
         
-            def printA(){
-                println("i'm "+name*3)
+            def isDebug(c){
+                return c(a)
             }
         }
         
-        def class B(){
-            def  printB(){
-                return @a+9*8
-            }
+        def context = Context()
+        println(toString(context))
+        
+        def result = if(context.isDebug((debug)->{
+            return debug
+        })){
+            return "debugMode"
+        }else{
+            return "releaseMode"
         }
         
-        def c = A()
-        c.printA()
-
-        
-        println(B().printB() + 8)
-        @b.printA()
-       
-        println(c.name)
-        
-        @b.getB().printB()
+        println(result)
+        println(currentThread())
     """
     val visitor = R3Engine()
-    visitor.setEnvironment("a", 4)
-    visitor.setEnvironment("b", A())
+
     runBlocking {
         visitor.execute(program).let {
-//            println(it)
+            println(it.result)
         }
     }
-//    println(result)
 }
 
-class A{
-    fun printA(){
-        println("fuck a")
-    }
-    fun getB() = B()
-}
-
-class B(){
-    fun printB(){
-        println("fuck B")
-    }
-}

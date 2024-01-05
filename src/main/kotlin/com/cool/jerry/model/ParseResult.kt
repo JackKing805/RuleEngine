@@ -63,6 +63,31 @@ sealed class ParseResult {
     }
 }
 
+fun ParseResult.isLambadaExpression():Boolean{
+    return when(this){
+        is ParseResult.Define.ClassDefine -> false
+        is ParseResult.Define.ConstructorDefine -> false
+        is ParseResult.Define.FunctionDefine -> {
+            this.functionStatement.functionName.text.startsWith("LambdaExpression_")
+        }
+        is ParseResult.Define.Variable -> this.value.isLambadaExpression()
+        ParseResult.NoneResult -> false
+        ParseResult.OperateResult.Break -> false
+        ParseResult.OperateResult.Continue -> false
+        is ParseResult.OperateResult.Return -> false
+        is ParseResult.ValueResult.AnyValueResult -> if (this.value is ParseResult.Define.FunctionDefine){
+            (this.value as ParseResult.Define.FunctionDefine).isLambadaExpression()
+        }else{
+            false
+        }
+        is ParseResult.ValueResult.ArrayValueResult -> false
+        is ParseResult.ValueResult.BooleanValueResult -> false
+        is ParseResult.ValueResult.FloatValueResult -> false
+        is ParseResult.ValueResult.IntValueResult -> false
+        is ParseResult.ValueResult.StringValueResult -> false
+    }
+}
+
 fun ParseResult.toIntValueResultElseThrow():ParseResult.ValueResult.IntValueResult{
     return when (this) {
         is ParseResult.ValueResult.IntValueResult -> this
@@ -78,7 +103,7 @@ fun ParseResult.toValueResultElseThrow(exceptionInfo:String?=null): ParseResult.
             when(this){
                 is ParseResult.Define.ClassDefine,
                 is ParseResult.Define.ConstructorDefine,
-                is ParseResult.Define.FunctionDefine -> throw RuntimeException(exceptionInfo?:"$this not a valueResult")
+                is ParseResult.Define.FunctionDefine -> this.toValueResult()
                 is ParseResult.Define.Variable -> this.value
             }
         }
@@ -110,6 +135,8 @@ fun Any.toValueResult(): ParseResult.ValueResult<*> {
         is ParseResult.Define->{
             if (this is ParseResult.Define.Variable){
                 return this.value
+            }else if (this is ParseResult.Define.FunctionDefine){
+                return ParseResult.ValueResult.AnyValueResult(this)
             }
             throw RuntimeException("$this not a valueResult")
         }

@@ -156,6 +156,12 @@ sealed class R3Node(
             val innerExpression: Expression,
         ):Expression(source)
 
+        data class LambdaExpression(
+            override var source: String,
+            val parameters: Define.Params,
+            val functionBody: List<Expression>
+        ):Expression(source)
+
 
         sealed class OperateExpression(source: String) : Expression(source) {
             sealed class BitOperateExpression(source: String, open val left: Expression, open val right: Expression) :

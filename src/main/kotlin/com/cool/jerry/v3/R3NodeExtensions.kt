@@ -174,6 +174,15 @@ fun R3Node.haveIdEquals(name:String):Boolean{
         is R3Node.Expression.SignedExpression -> {
             return this.innerExpression.haveIdEquals(name)
         }
+
+        is R3Node.Expression.LambdaExpression -> {
+            for (expression in this.functionBody) {
+                if (expression.haveIdEquals(name)){
+                    return true
+                }
+            }
+            return false
+        }
     }
 }
 
@@ -568,6 +577,17 @@ fun R3Node.modifierOldIdToNewIdName(oldName:String,newName:String):R3Node{
                 setParent(this@modifierOldIdToNewIdName.parent())
             }
         }
+
+        is R3Node.Expression.LambdaExpression -> {
+            copy(
+                parameters = parameters.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression.Define.Params,
+                functionBody = functionBody.map {
+                    it.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+                }
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
     }.let {
         return it
     }
@@ -692,6 +712,13 @@ fun R3Node.modifierOldIdToNewIdName2(oldName:String,newName:String):R3Node{
         is R3Node.Expression.OperateExpression.CompareOperateExpression->{
             left.modifierOldIdToNewIdName2(oldName,newName)
             right.modifierOldIdToNewIdName2(oldName,newName)
+        }
+
+        is R3Node.Expression.LambdaExpression -> {
+            parameters.modifierOldIdToNewIdName2(oldName,newName)
+            functionBody.onEach {
+                it.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
+            }
         }
     }
     return this

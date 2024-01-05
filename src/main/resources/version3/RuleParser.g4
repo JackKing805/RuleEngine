@@ -136,6 +136,7 @@ methodCallExpression
     : ID '(' (expression (',' expression)*)? ')'
     ;
 
+
 parenthesizedExpression
     : '(' expression ')'
     ;
@@ -156,6 +157,10 @@ numberAutoIncreaseReduceExpression
     : defineExpression '++'    #NumberAutoIncreaseExpression
     | defineExpression '--'    #NumberAutoReduceExpression
     ;
+lamdaExpressionDefine
+    :'(' params? ')' '->' '{' functionBody* '}'
+    ;
+
 
 expression
     : methodCallExpression                                                      #CallMethodExpression
@@ -186,6 +191,7 @@ expression
     | numberAutoIncreaseReduceExpression                                        #NumberAutoExpression
     | expression '.' ID                                                         #ObjectPropertiesExpression
     | '-' expression                                                            #SignedExpression
+    | lamdaExpressionDefine                                                     #LamdaExpression
     ;
 
 

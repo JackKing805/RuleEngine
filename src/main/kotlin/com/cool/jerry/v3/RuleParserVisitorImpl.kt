@@ -141,6 +141,13 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
                 is R3Node.Expression.SignedExpression ->{
                     this.innerExpression.levelSet(parent)
                 }
+
+                is R3Node.Expression.LambdaExpression -> {
+                    this.parameters.levelSet(parent)
+                    for (expression in this.functionBody) {
+                        expression.levelSet(parent)
+                    }
+                }
             }
     }
 
@@ -657,6 +664,18 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
         )
     }
 
+    override fun visitConstVariableExpression(ctx: RuleParser.ConstVariableExpressionContext): R3Node {
+        return visit(ctx.defineConstVariable())
+    }
+
+    override fun visitVariableExpression(ctx: RuleParser.VariableExpressionContext): R3Node {
+        return visit(ctx.defineVariable())
+    }
+
+    override fun visitMethodName(ctx: RuleParser.MethodNameContext): R3Node {
+        return ctx.ID().toIdExpression()
+    }
+
     override fun visitNumberAutoExpression(ctx: RuleParser.NumberAutoExpressionContext): R3Node {
         return visit(ctx.numberAutoIncreaseReduceExpression())
     }
@@ -685,6 +704,24 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
 
     override fun visitSignedExpression(ctx: RuleParser.SignedExpressionContext): R3Node {
         return R3Node.Expression.SignedExpression(ctx.text,visit(ctx.expression()) as R3Node.Expression)
+    }
+
+    override fun visitLamdaExpression(ctx: RuleParser.LamdaExpressionContext): R3Node {
+        return visit(ctx.lamdaExpressionDefine())
+    }
+
+    override fun visitLamdaExpressionDefine(ctx: RuleParser.LamdaExpressionDefineContext): R3Node {
+        val params = ctx.params()?.let {
+            visit(it) as R3Node.Expression.Define.Params
+        } ?: R3Node.Expression.Define.Params("", emptyList())
+        val functionBody = ctx.functionBody().mapNotNull {
+            visit(it) as R3Node.Expression
+        }
+        return R3Node.Expression.LambdaExpression(
+            ctx.text,
+            params,
+            functionBody
+        )
     }
 
 
