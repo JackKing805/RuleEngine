@@ -1,7 +1,9 @@
 package com.cool.jerry.v3
 
+import com.cool.jerry.v2.rt_engine.define.Node
 import com.cool.jerry.version3.RuleParser
 import com.cool.jerry.version3.RuleParserBaseVisitor
+import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.TerminalNode
 
 class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
@@ -156,7 +158,12 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
         return ctx.statement().mapNotNull {
             visit(it)
         }.let {
-            R3Node.Program(ctx.text, it).apply {
+            val sorted = it.sortedBy {node->
+                node !is R3Node.Statement.ClassStatement
+            }.sortedBy {node->
+                node !is R3Node.Statement.FunctionStatement
+            }
+            R3Node.Program(ctx.text, sorted).apply {
                 levelSet(null)
             }
         }
@@ -722,6 +729,10 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
             params,
             functionBody
         )
+    }
+
+    override fun visitErrorNode(node: ErrorNode?): R3Node {
+        throw RuntimeException("ErrorNode:${node?.text}")
     }
 
 

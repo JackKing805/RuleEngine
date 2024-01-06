@@ -65,7 +65,7 @@ class R3Engine {
     }
 
     suspend fun execute(rule: String): ExecuteResult {
-        val visit = visit(rule)
+        val visit = visit(rule.trim())
         val r3Parser = R3Parser()
         initR3(r3Parser)
         val result = when(val parseResult = r3Parser.parse(visit, mutableListOf(), mutableListOf(), mutableListOf())){

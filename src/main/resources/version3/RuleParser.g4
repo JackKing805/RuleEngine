@@ -22,11 +22,12 @@ options {
 }
 
 //program
-//    : (statement NEWLINE?)*
+//    : (statement NEWLINE)* EOF
 //    ;
 
+
 program
-    : statement*
+    : statement* EOF
     ;
 
 statement

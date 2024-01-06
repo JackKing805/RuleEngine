@@ -60,9 +60,16 @@ private fun testParse() {
         }else{
             return "releaseMode"
         }
+        //fgfg
         
         println(result)
         println(currentThread())
+        @MAX_INT
+        c()
+        def c(){
+            println(@MAX_INT)
+            println(@MIN_INT)
+        }
     """
     val visitor = R3Engine()
 

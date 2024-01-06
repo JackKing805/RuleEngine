@@ -1,5 +1,5 @@
 // Generated from E:/Projects/JavaProjects/RuleEngine/src/main/resources/version3/RuleLexer.g4 by ANTLR 4.13.1
-package com.cool.jerry.version3;
+package version3;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
