@@ -6,8 +6,11 @@ import com.cool.jerry.model.InjectMethod
 import com.cool.jerry.model.ParseResult
 import com.cool.jerry.version3.RuleLexer
 import com.cool.jerry.version3.RuleParser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
+import kotlin.coroutines.CoroutineContext
 
 class R3Engine {
     private val environments = mutableMapOf<String, Any>()
@@ -19,7 +22,7 @@ class R3Engine {
 
     fun setEnvironmentMethod(method: InjectMethod) {
         environmentMethods.find {
-            it.method.name == method.method.name && it.method.parameterCount == method.method.parameterCount &&
+            it.method.name == method.method.name && it.parameterCount == method.parameterCount &&
                     it.method.parameters.zip(method.method.parameters)
                         .all { pair ->
                             pair.first.type == pair.second.type
@@ -64,11 +67,11 @@ class R3Engine {
         r3Parser.setEnvironmentMethod(environmentMethods)
     }
 
-    suspend fun execute(rule: String): ExecuteResult {
+    suspend fun execute(coroutineScope: CoroutineScope,rule: String): ExecuteResult {
         val visit = visit(rule.trim())
         val r3Parser = R3Parser()
         initR3(r3Parser)
-        val result = when(val parseResult = r3Parser.parse(visit, mutableListOf(), mutableListOf(), mutableListOf())){
+        val result = when(val parseResult = r3Parser.parse(coroutineScope,visit, mutableListOf(), mutableListOf(), mutableListOf())){
             is ParseResult.Define.ClassDefine -> null
             is ParseResult.Define.ConstructorDefine -> null
             is ParseResult.Define.FunctionDefine -> null
@@ -76,7 +79,7 @@ class R3Engine {
             ParseResult.NoneResult -> null
             ParseResult.OperateResult.Break -> null
             ParseResult.OperateResult.Continue -> null
-            is ParseResult.OperateResult.Return -> parseResult.value!!.value
+            is ParseResult.OperateResult.Return -> parseResult.value?.value
             is ParseResult.ValueResult.AnyValueResult -> parseResult.value
             is ParseResult.ValueResult.ArrayValueResult -> parseResult.value
             is ParseResult.ValueResult.BooleanValueResult -> parseResult.value
@@ -93,6 +96,7 @@ class R3Engine {
         val tokens = CommonTokenStream(lexer)
         val visitor = RuleParserVisitorImpl()
         val parser = RuleParser(tokens)
+        parser.errorHandler = ErrorHandler()
         return visitor.visit(parser.program())
     }
 }

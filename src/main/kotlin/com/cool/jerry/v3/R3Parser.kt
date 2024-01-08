@@ -2,6 +2,7 @@ package com.cool.jerry.v3
 
 import com.cool.jerry.exception.*
 import com.cool.jerry.model.*
+import kotlinx.coroutines.CoroutineScope
 import java.util.UUID
 import kotlin.experimental.and
 import kotlin.experimental.or
@@ -47,6 +48,7 @@ class R3Parser {
     }
 
     suspend fun parse(
+        coroutineScope: CoroutineScope,
         node: R3Node,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -54,7 +56,7 @@ class R3Parser {
     ): ParseResult {
         return when (node) {
             is R3Node.Expression -> {
-                val result = parseExpression(node, scopeParams, classes, functions)
+                val result = parseExpression(coroutineScope,node, scopeParams, classes, functions)
                 if (result is ParseResult.Define.Variable) {
                     if (node.parent() == null) {
                         scopeParams.add(Param(result.name, result.value))
@@ -64,11 +66,11 @@ class R3Parser {
             }
 
             is R3Node.Program -> {
-                parseProgram(node, scopeParams, classes, functions)
+                parseProgram(coroutineScope,node, scopeParams, classes, functions)
             }
 
             is R3Node.Statement -> {
-                val result = parseStatement(node, scopeParams, classes, functions)
+                val result = parseStatement(coroutineScope,node, scopeParams, classes, functions)
                 when (result) {
                     is ParseResult.Define.ClassDefine -> {
                         if (node.parent() == null) {
@@ -90,6 +92,7 @@ class R3Parser {
     }
 
     private suspend fun parseDefine(
+        coroutineScope: CoroutineScope,
         node: R3Node.Expression.Define,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -107,13 +110,14 @@ class R3Parser {
     }
 
     private suspend fun parseBitOperate(
+        coroutineScope: CoroutineScope,
         node: R3Node.Expression.OperateExpression.BitOperateExpression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
         functions: MutableList<ParseResult.Define.FunctionDefine>
     ): ParseResult {
-        val left = parse(node.left, scopeParams, classes, functions).toValueResultElseThrow()
-        val right = parse(node.right, scopeParams, classes, functions).toValueResultElseThrow()
+        val left = parse(coroutineScope,node.left, scopeParams, classes, functions).toValueResultElseThrow()
+        val right = parse(coroutineScope,node.right, scopeParams, classes, functions).toValueResultElseThrow()
         return when (node) {
             is R3Node.Expression.OperateExpression.BitOperateExpression.BitAndOperateExpression -> {
                 if (left is ParseResult.ValueResult.IntValueResult && right is ParseResult.ValueResult.IntValueResult) {
@@ -174,13 +178,14 @@ class R3Parser {
     }
 
     private suspend fun parseCompareOperate(
+        coroutineScope: CoroutineScope,
         node: R3Node.Expression.OperateExpression.CompareOperateExpression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
         functions: MutableList<ParseResult.Define.FunctionDefine>
     ): ParseResult {
-        val left = parse(node.left, scopeParams, classes, functions).toValueResultElseThrow()
-        val right = parse(node.right, scopeParams, classes, functions).toValueResultElseThrow()
+        val left = parse(coroutineScope,node.left, scopeParams, classes, functions).toValueResultElseThrow()
+        val right = parse(coroutineScope,node.right, scopeParams, classes, functions).toValueResultElseThrow()
         return when (node) {
             is R3Node.Expression.OperateExpression.CompareOperateExpression.AndCompareOperateExpression -> {
                 if (left is ParseResult.ValueResult.IntValueResult && right is ParseResult.ValueResult.IntValueResult) {
@@ -299,6 +304,7 @@ class R3Parser {
     }
 
     private suspend fun parseMathAssignOperate(
+        coroutineScope: CoroutineScope,
         node: R3Node.Expression.OperateExpression.MathAssignOperateExpression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -308,8 +314,8 @@ class R3Parser {
             throw RuntimeException("math assign operate left must be variable")
         }
 
-        val left = parse(node.left, scopeParams, classes, functions).toValueResultElseThrow()
-        val right = parse(node.right, scopeParams, classes, functions).toValueResultElseThrow()
+        val left = parse(coroutineScope,node.left, scopeParams, classes, functions).toValueResultElseThrow()
+        val right = parse(coroutineScope,node.right, scopeParams, classes, functions).toValueResultElseThrow()
 
         when (node) {
             is R3Node.Expression.OperateExpression.MathAssignOperateExpression.AddAssignOperateExpression -> {
@@ -499,13 +505,14 @@ class R3Parser {
     }
 
     private suspend fun parseMathOperate(
+        coroutineScope: CoroutineScope,
         node: R3Node.Expression.OperateExpression.MathOperateExpression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
         functions: MutableList<ParseResult.Define.FunctionDefine>
     ): ParseResult {
-        val left = parse(node.left, scopeParams, classes, functions).toValueResultElseThrow()
-        val right = parse(node.right, scopeParams, classes, functions).toValueResultElseThrow()
+        val left = parse(coroutineScope,node.left, scopeParams, classes, functions).toValueResultElseThrow()
+        val right = parse(coroutineScope,node.right, scopeParams, classes, functions).toValueResultElseThrow()
         return when (node) {
             is R3Node.Expression.OperateExpression.MathOperateExpression.AddOperateExpression -> {
                 when (left) {
@@ -1110,12 +1117,13 @@ class R3Parser {
     }
 
     private suspend fun parseNumberAutoOperate(
+        coroutineScope: CoroutineScope,
         node: R3Node.Expression.OperateExpression.NumberAutoOperateExpression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
         functions: MutableList<ParseResult.Define.FunctionDefine>
     ): ParseResult {
-        val whoValue = parse(node.who, scopeParams, classes, functions).toValueResultElseThrow()
+        val whoValue = parse(coroutineScope,node.who, scopeParams, classes, functions).toValueResultElseThrow()
         if (whoValue !is ParseResult.ValueResult.IntValueResult) {
             throw RuntimeException("auto Operate only support int define")
         }
@@ -1132,6 +1140,7 @@ class R3Parser {
     }
 
     private suspend fun parseOperate(
+        coroutineScope: CoroutineScope,
         node: R3Node.Expression.OperateExpression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1139,37 +1148,38 @@ class R3Parser {
     ): ParseResult {
         return when (node) {
             is R3Node.Expression.OperateExpression.BitOperateExpression -> parseBitOperate(
-                node,
+                coroutineScope, node,
                 scopeParams,
                 classes,
                 functions
             )
 
             is R3Node.Expression.OperateExpression.CompareOperateExpression -> parseCompareOperate(
-                node,
+                coroutineScope, node,
                 scopeParams, classes,
                 functions
             )
 
             is R3Node.Expression.OperateExpression.MathAssignOperateExpression -> parseMathAssignOperate(
-                node,
+                coroutineScope,  node,
                 scopeParams, classes, functions
             )
 
             is R3Node.Expression.OperateExpression.MathOperateExpression -> parseMathOperate(
-                node,
+                coroutineScope,  node,
                 scopeParams, classes,
                 functions
             )
 
             is R3Node.Expression.OperateExpression.NumberAutoOperateExpression -> parseNumberAutoOperate(
-                node,
+                coroutineScope,  node,
                 scopeParams, classes, functions
             )
         }
     }
 
     private suspend fun parseType(
+        coroutineScope: CoroutineScope,
         node: R3Node.Expression.TypeExpression<*>,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1178,7 +1188,7 @@ class R3Parser {
         return when (node) {
             is R3Node.Expression.TypeExpression.ArrayExpression -> {
                 node.value.map {
-                    parse(it, scopeParams, classes, functions)
+                    parse(coroutineScope,it, scopeParams, classes, functions)
                 }.toValueResult()
             }
 
@@ -1190,31 +1200,32 @@ class R3Parser {
     }
 
     private suspend fun parseExpression(
+        coroutineScope: CoroutineScope,
         node: R3Node.Expression,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
         functions: MutableList<ParseResult.Define.FunctionDefine>
     ): ParseResult {
         return when (node) {
-            is R3Node.Expression.Define -> parseDefine(node, scopeParams, classes, functions)
+            is R3Node.Expression.Define -> parseDefine(coroutineScope,node, scopeParams, classes, functions)
             is R3Node.Expression.ArrayAccessExpression -> {
-                val array = parse(node.array, scopeParams, classes, functions)
+                val array = parse(coroutineScope,node.array, scopeParams, classes, functions)
                 if (array !is ParseResult.ValueResult.ArrayValueResult) {
                     throw RuntimeException("${node.source} not a array define")
                 }
-                val index = parse(node.index, scopeParams, classes, functions) as ParseResult.ValueResult.IntValueResult
+                val index = parse(coroutineScope,node.index, scopeParams, classes, functions) as ParseResult.ValueResult.IntValueResult
                 array.value[index.value.toInt()]
             }
 
             is R3Node.Expression.OperateExpression.AssignOperateExpression -> {
-                val value = parse(node.right, scopeParams, classes, functions).toValueResultElseThrow()
+                val value = parse(coroutineScope,node.right, scopeParams, classes, functions).toValueResultElseThrow()
                 when (node.left) {
                     is R3Node.Expression.Define.Identifier -> {
                         reAssignLeftValue(node.left, value.value!!, scopeParams)
                     }
 
                     is R3Node.Expression.ObjectPropertiesExpression -> {
-                        val objectHolder = parse(node.left.objectExpression, scopeParams, classes, functions)
+                        val objectHolder = parse(coroutineScope,node.left.objectExpression, scopeParams, classes, functions)
                         if (objectHolder is ParseResult.ValueResult.AnyValueResult && objectHolder.value is ClassEnvironmentDefine){
                             reAssignLeftValue(node.left.propertiesName,value.value!!,(objectHolder.value as ClassEnvironmentDefine).scopeParams)
                         }else{
@@ -1243,7 +1254,7 @@ class R3Parser {
             }
 
             is R3Node.Expression.IfExpression -> {
-                val condition = parse(node.condition, scopeParams, classes, functions)
+                val condition = parse(coroutineScope,node.condition, scopeParams, classes, functions)
                 if (condition !is ParseResult.ValueResult.BooleanValueResult) {
                     throw RuntimeException("if condition must be boolean value")
                 }
@@ -1254,7 +1265,7 @@ class R3Parser {
                 }.toMutableList()
                 val scopeParamsCopy = mutableListOf(*scopeParams.toTypedArray())
 
-                return expressionList.execute(scopeParamsCopy, classes, functions, true, true, true)
+                return expressionList.execute(coroutineScope,scopeParamsCopy, classes, functions, true, true, true)
 //                for ((index, expression) in expressionList.withIndex()) {
 //                    val expressionResult = parse(expression, scopeParamsCopy, classes, functions)
 //                    val modifierResult = expressionResult.modifierScopeParams(scopeParamsCopy)
@@ -1286,7 +1297,7 @@ class R3Parser {
             }
 
             is R3Node.Expression.LoopExpression -> {
-                val condition = parse(node.condition, scopeParams, classes, functions).toValueResultElseThrow()
+                val condition = parse(coroutineScope,node.condition, scopeParams, classes, functions).toValueResultElseThrow()
                 if (condition !is ParseResult.ValueResult.ArrayValueResult) {
                     throw RuntimeException("loop only support array:${node.source}")
                 }
@@ -1300,7 +1311,7 @@ class R3Parser {
                     val conditionProxy = Param(node.conditionProxy.text, valueResult)
                     conditionProxy.replaceScopeParams(scopeParamsCopy, true)
                     val loopBody = node.loopBody.toMutableList()
-                    result = loopBody.execute(scopeParamsCopy, classes, functions, true, true, true)
+                    result = loopBody.execute(coroutineScope,scopeParamsCopy, classes, functions, true, true, true)
                     if (result is ParseResult.OperateResult.Break) {
                         break
                     } else if (result is ParseResult.OperateResult.Continue) {
@@ -1347,23 +1358,22 @@ class R3Parser {
                 val functionStatement = functions.find { it.functionStatement.functionName.text == method }
                 val lambdaExpression = scopeParamsCopy.filter {
                     val re = it.parseResult
-                    re is ParseResult.Define.Variable &&
+                    (re is ParseResult.Define.Variable &&
                             re.value is ParseResult.ValueResult.AnyValueResult &&
                             re.value.value is ParseResult.Define.FunctionDefine &&
-                            (re.value.value as ParseResult.Define.FunctionDefine).functionStatement.parameters.parameters.size == node.arguments.size
+                            (re.value.value as ParseResult.Define.FunctionDefine).functionStatement.parameters.parameters.size == node.arguments.size)
+
+                            ||
+
+                            (re is ParseResult.ValueResult.AnyValueResult &&
+                                            re.value is ParseResult.Define.FunctionDefine &&
+                                            (re.value as ParseResult.Define.FunctionDefine).functionStatement.parameters.parameters.size == node.arguments.size)
                 }.find {
                     method == it.paramName()
-                }?:scopeParamsCopy.filter {
-                    val re = it.parseResult
-                            re is ParseResult.ValueResult.AnyValueResult &&
-                            re.value is ParseResult.Define.FunctionDefine &&
-                                    (re.value as ParseResult.Define.FunctionDefine).functionStatement.parameters.parameters.size == node.arguments.size
-                }.find {
-                    method==it.paramName()
                 }
                 if (functionStatement != null) {
                     return functionStatement.functionStatement.execute(
-                        node.arguments,
+                        coroutineScope,node.arguments,
                         scopeParamsCopy,
                         classes,
                         functions,
@@ -1371,7 +1381,7 @@ class R3Parser {
                     )
                 } else if (lambdaExpression!=null){
                     return (lambdaExpression.parseResult.toValueResult().value as ParseResult.Define.FunctionDefine).functionStatement.execute(
-                        node.arguments,
+                        coroutineScope,node.arguments,
                         scopeParamsCopy,
                         classes,
                         functions,
@@ -1398,7 +1408,7 @@ class R3Parser {
                     if (findClassCreate != null) {
                         //创建类变量
                         findClassCreate.variableExpression.map {
-                            parse(it, scopeParamsCopy, classes, functions)
+                            parse(coroutineScope,it, scopeParamsCopy, classes, functions)
                         }.forEach {
                             if (it is ParseResult.Define.Variable) {
                                 Param(it.name, it).replaceScopeParams(scopeParamsCopy, true)
@@ -1413,7 +1423,7 @@ class R3Parser {
                         }?.let {
                             //调用匹配的构造方法
                             it.functionStatement.functionStatement.execute(
-                                node.arguments,
+                                coroutineScope,  node.arguments,
                                 scopeParamsCopy,
                                 classes,
                                 functions,
@@ -1433,7 +1443,7 @@ class R3Parser {
 //                                Param(findClassCreate.classStatement.parameters.parameters[index].text, value)
 //                            }.toMutableList()
                             node.arguments.convertArguments(
-                                findClassCreate.classStatement.parameters.parameters.map { it.text },
+                                coroutineScope, findClassCreate.classStatement.parameters.parameters.map { it.text },
                                 scopeParamsCopy,
                                 classes,
                                 functions
@@ -1460,7 +1470,7 @@ class R3Parser {
 
                         val arguments = node.arguments.map {
                             parse(
-                                it,
+                                coroutineScope,  it,
                                 scopeParams,
                                 classes,
                                 functions
@@ -1487,11 +1497,11 @@ class R3Parser {
 
             is R3Node.Expression.ObjectMethodCallExpression -> {
                 val objectDefine =
-                    parse(node.objectExpression, scopeParams, classes, functions).toValueResultElseThrow()
+                    parse(coroutineScope,node.objectExpression, scopeParams, classes, functions).toValueResultElseThrow()
                 val methodDefine = node.methodName.text
                 val scopeParamsCopy = mutableListOf(*scopeParams.toTypedArray())
                 val arguments = node.arguments.map {
-                    parse(it, scopeParamsCopy, classes, functions).toValueResult()
+                    parse(coroutineScope,it, scopeParamsCopy, classes, functions).toValueResult()
                 }.mapIndexed { index, valueResult ->
                     node.arguments[index] to valueResult
                 }
@@ -1502,7 +1512,7 @@ class R3Parser {
                         it.functionStatement.functionName.text == methodDefine && it.functionStatement.parameters.parameters.size == arguments.size
                     } ?: throw RuntimeException("$objectDefine don't define $methodDefine function")
                     return functionStatement.functionStatement.execute(
-                        node.arguments, value.scopeParams, mutableListOf(),
+                        coroutineScope,  node.arguments, value.scopeParams, mutableListOf(),
                         mutableListOf(),
                         true
                     )
@@ -1520,7 +1530,7 @@ class R3Parser {
 
             is R3Node.Expression.ObjectPropertiesExpression -> {
                 val objectDefine =
-                    parse(node.objectExpression, scopeParams, classes, functions).toValueResultElseThrow()
+                    parse(coroutineScope,node.objectExpression, scopeParams, classes, functions).toValueResultElseThrow()
                 val value = objectDefine.value!!
                 val propertiesName = node.propertiesName.text
                 if (value is ClassEnvironmentDefine) {
@@ -1542,11 +1552,11 @@ class R3Parser {
                 }
             }
 
-            is R3Node.Expression.OperateExpression -> parseOperate(node, scopeParams, classes, functions)
+            is R3Node.Expression.OperateExpression -> parseOperate(coroutineScope,node, scopeParams, classes, functions)
             is R3Node.Expression.RangeExpression -> {
-                val start = parse(node.start, scopeParams, classes, functions).toValueResultElseThrow()
+                val start = parse(coroutineScope,node.start, scopeParams, classes, functions).toValueResultElseThrow()
                     .toIntValueResultElseThrow()
-                val end = parse(node.end, scopeParams, classes, functions).toValueResultElseThrow()
+                val end = parse(coroutineScope,node.end, scopeParams, classes, functions).toValueResultElseThrow()
                     .toIntValueResultElseThrow()
 
                 if (start.value > end.value) {
@@ -1567,20 +1577,20 @@ class R3Parser {
             is R3Node.Expression.ReturnExpression -> {
                 ParseResult.OperateResult.Return(
                     node.expression?.let {
-                        parse(it, scopeParams, classes, functions).toValueResult()
+                        parse(coroutineScope,it, scopeParams, classes, functions).toValueResult()
                     }
                 )
             }
 
-            is R3Node.Expression.TypeExpression<*> -> parseType(node, scopeParams, classes, functions)
+            is R3Node.Expression.TypeExpression<*> -> parseType(coroutineScope,node, scopeParams, classes, functions)
             is R3Node.Expression.VariableExpression -> {
-                val parse = parse(node.variableValue, scopeParams, classes, functions).toValueResultElseThrow()
+                val parse = parse(coroutineScope,node.variableValue, scopeParams, classes, functions).toValueResultElseThrow()
                 ParseResult.Define.Variable(node.variableName.text, parse, node.isConst)
             }
 
             is R3Node.Expression.SignedExpression -> {
                 val innerExpression = parse(
-                    node.innerExpression,
+                    coroutineScope, node.innerExpression,
                     scopeParams,
                     classes,
                     functions
@@ -1639,6 +1649,7 @@ class R3Parser {
     }
 
     private suspend fun parseProgram(
+        coroutineScope: CoroutineScope,
         node: R3Node.Program,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1646,12 +1657,13 @@ class R3Parser {
     ): ParseResult {
         var result: ParseResult = ParseResult.NoneResult
         for (statement in node.statements) {
-            result = parse(statement, scopeParams, classes, functions)
+            result = parse(coroutineScope,statement, scopeParams, classes, functions)
         }
         return result
     }
 
     private suspend fun parseStatement(
+        coroutineScope: CoroutineScope,
         node: R3Node.Statement,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1661,9 +1673,9 @@ class R3Parser {
             is R3Node.Statement.ClassStatement -> {
                 val classBody = node.classBody
                 val constructor = classBody.filterIsInstance<R3Node.Statement.ConstructorFunctionStatement>()
-                    .map { parse(it, scopeParams, classes, functions) as ParseResult.Define.ConstructorDefine }
+                    .map { parse(coroutineScope,it, scopeParams, classes, functions) as ParseResult.Define.ConstructorDefine }
                 val function = classBody.filterIsInstance<R3Node.Statement.FunctionStatement>().map {
-                    parse(it, scopeParams, classes, functions) as ParseResult.Define.FunctionDefine
+                    parse(coroutineScope,it, scopeParams, classes, functions) as ParseResult.Define.FunctionDefine
                 }
                 val variableExpression = classBody.filterIsInstance<R3Node.Expression.VariableExpression>()
 
@@ -1695,6 +1707,7 @@ class R3Parser {
 
 
     private suspend fun List<R3Node.Expression>.convertArguments(
+        coroutineScope: CoroutineScope,
         autalParametersNames: List<String>,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1702,7 +1715,7 @@ class R3Parser {
     ): MutableList<Param> {
         val arguments = this.map {
             parse(
-                it,
+                coroutineScope,it,
                 scopeParams,
                 classes,
                 functions
@@ -1727,6 +1740,7 @@ class R3Parser {
      * @param scopeParams 当前上下文的环境变量
      */
     private suspend fun R3Node.Statement.FunctionStatement.execute(
+        coroutineScope: CoroutineScope,
         arguments: List<R3Node.Expression>,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
@@ -1750,7 +1764,7 @@ class R3Parser {
 //        }.toMutableList()
 
 //        asdas
-        arguments.convertArguments(parameters.parameters.map { it.text }, scopeParams, classes, functions)
+        arguments.convertArguments(coroutineScope,parameters.parameters.map { it.text }, scopeParams, classes, functions)
             .replaceScopeParams(scopeParams, REPLACE)
 
 //        argumentsConvert.replaceScopeParams(scopeParams, REPLACE)
@@ -1794,10 +1808,11 @@ class R3Parser {
 //        }
 //        return ParseResult.NoneResult
 //
-        return functionBody.execute(scopeParams, classes, functions, true, false, true)
+        return functionBody.execute(coroutineScope,scopeParams, classes, functions, true, false, true)
     }
 
     private suspend fun MutableList<R3Node.Expression>.execute(
+        coroutineScope: CoroutineScope,
         scopeParams: MutableList<Param>,
         classes: MutableList<ParseResult.Define.ClassDefine>,
         functions: MutableList<ParseResult.Define.FunctionDefine>,
@@ -1807,7 +1822,7 @@ class R3Parser {
     ): ParseResult {
         var result: ParseResult = ParseResult.NoneResult
         for ((index, expression) in this.withIndex()) {
-            val expressionResult = parse(expression, scopeParams, classes, functions)
+            val expressionResult = parse(coroutineScope,expression, scopeParams, classes, functions)
 
             if (expressionResult is ParseResult.Define.Variable) {
                 if (scopeParams.find { it.paramName() == expressionResult.name } != null) {

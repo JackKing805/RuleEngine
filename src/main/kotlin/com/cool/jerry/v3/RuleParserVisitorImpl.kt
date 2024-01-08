@@ -1,6 +1,5 @@
 package com.cool.jerry.v3
 
-import com.cool.jerry.v2.rt_engine.define.Node
 import com.cool.jerry.version3.RuleParser
 import com.cool.jerry.version3.RuleParserBaseVisitor
 import org.antlr.v4.runtime.tree.ErrorNode
@@ -145,9 +144,9 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
                 }
 
                 is R3Node.Expression.LambdaExpression -> {
-                    this.parameters.levelSet(parent)
+                    this.parameters.levelSet(this)
                     for (expression in this.functionBody) {
-                        expression.levelSet(parent)
+                        expression.levelSet(this)
                     }
                 }
             }
@@ -734,7 +733,6 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
     override fun visitErrorNode(node: ErrorNode?): R3Node {
         throw RuntimeException("ErrorNode:${node?.text}")
     }
-
 
     private fun TerminalNode.toIdExpression(): R3Node.Expression.Define.Identifier {
         return if (text.startsWith("@")) {

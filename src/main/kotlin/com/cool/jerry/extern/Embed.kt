@@ -1,5 +1,9 @@
 package com.cool.jerry.extern
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.awt.KeyEventDispatcher
 import java.util.UUID
 import kotlin.coroutines.CoroutineContext
 
