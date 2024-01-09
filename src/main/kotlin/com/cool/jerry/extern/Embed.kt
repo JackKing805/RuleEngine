@@ -1,11 +1,7 @@
 package com.cool.jerry.extern
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.awt.KeyEventDispatcher
+import com.cool.jerry.bridge.FunctionCallBridge0
 import java.util.UUID
-import kotlin.coroutines.CoroutineContext
 
 /**
  * 内嵌方法
@@ -106,5 +102,12 @@ object Embed {
     @JvmStatic
     fun currentThread():String{
         return Thread.currentThread().toString()
+    }
+
+    @JvmStatic
+    fun thread(functionCallBridge0: FunctionCallBridge0){
+        kotlin.concurrent.thread {
+            functionCallBridge0.call()
+        }
     }
 }

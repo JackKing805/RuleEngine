@@ -35,7 +35,7 @@ import kotlinx.coroutines.runBlocking
 //
 
 
-//todo 新增：对错误代码报错,修复lambda表达式中不能定义变量的错误
+//todo 新增向kotlin传递回调函数的功能. bug:目前Range定义太大的话会将java虚拟机撑满
 fun main(args: Array<String>) {
     testParse()
 }
@@ -77,26 +77,16 @@ private fun testParse() {
     """
 
     val pp2 = """
-        def callLambda(a){
-            a(()->{
-                return "from CallLambdaInner2222"
-            })
+        def lll = ()->{
+            return "i'm b"
         }
         
-        callLambda((a)->{
-           def c= a()
-           println(toString(a()) + ",thread:" + currentThread())        
-        })
-           def c= "ADasdsa"
-           println(c)
-           c
+        println(lll())
     """
     val visitor = R3Engine()
 
-    runBlocking {
-        visitor.execute(this,pp2).let {
-            println(it.result)
-        }
+    visitor.execute(pp2).let {
+        println(it.result.result)
     }
 }
 

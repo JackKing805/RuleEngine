@@ -1,9 +1,12 @@
 package com.cool.jerry.v3
 
+import com.cool.jerry.bridge.FunctionCallBridge0
+import com.cool.jerry.bridge.FunctionCallBridge1
 import com.cool.jerry.extern.Embed
 import com.cool.jerry.model.ExecuteResult
 import com.cool.jerry.model.InjectMethod
 import com.cool.jerry.model.ParseResult
+import com.cool.jerry.model.Result
 import com.cool.jerry.version3.RuleLexer
 import com.cool.jerry.version3.RuleParser
 import kotlinx.coroutines.CoroutineScope
@@ -50,28 +53,27 @@ class R3Engine {
         r3Parser.setEnvironmentMethod(InjectMethod("print", Embed::class.java.getMethod("log", Boolean::class.java)))
         r3Parser.setEnvironmentMethod(InjectMethod("print", Embed::class.java.getMethod("log", Float::class.java)))
         r3Parser.setEnvironmentMethod(InjectMethod("print", Embed::class.java.getMethod("log", Double::class.java)))
-        r3Parser.setEnvironmentMethod(InjectMethod("currentTimestamp", Embed::class.java.getMethod("currentTime")))
+        r3Parser.setEnvironmentMethod(InjectMethod("currentTime", Embed::class.java.getMethod("currentTime")))
         r3Parser.setEnvironmentMethod(InjectMethod("uuid", Embed::class.java.getMethod("uuid")))
         r3Parser.setEnvironmentMethod(InjectMethod("sleep", Embed::class.java.getMethod("sleep",Long::class.java)))
         r3Parser.setEnvironmentMethod(InjectMethod("randomInt", Embed::class.java.getMethod("randomInt", Boolean::class.java)))
         r3Parser.setEnvironmentMethod(InjectMethod("toString", Embed::class.java.getMethod("toString", Any::class.java)))
         r3Parser.setEnvironmentMethod(InjectMethod("currentThread", Embed::class.java.getMethod("currentThread")))
-
+        r3Parser.setEnvironmentMethod(InjectMethod("thread", Embed::class.java.getMethod("thread",FunctionCallBridge0::class.java)))
 
         //注入常用变量
         r3Parser.setEnvironment("MAX_INT",Int.MAX_VALUE)
         r3Parser.setEnvironment("MIN_INT",Int.MIN_VALUE)
 
-
         r3Parser.setEnvironment(environments)
         r3Parser.setEnvironmentMethod(environmentMethods)
     }
 
-    suspend fun execute(coroutineScope: CoroutineScope,rule: String): ExecuteResult {
+    fun execute(rule: String): ExecuteResult {
         val visit = visit(rule.trim())
         val r3Parser = R3Parser()
         initR3(r3Parser)
-        val result = when(val parseResult = r3Parser.parse(coroutineScope,visit, mutableListOf(), mutableListOf(), mutableListOf())){
+        val result = when(val parseResult = r3Parser.parse(visit, mutableListOf(), mutableListOf(), mutableListOf())){
             is ParseResult.Define.ClassDefine -> null
             is ParseResult.Define.ConstructorDefine -> null
             is ParseResult.Define.FunctionDefine -> null
@@ -87,7 +89,7 @@ class R3Engine {
             is ParseResult.ValueResult.IntValueResult -> parseResult.value
             is ParseResult.ValueResult.StringValueResult -> parseResult.value
         }
-        return ExecuteResult(visit,result)
+        return ExecuteResult(visit, Result(visit,result))
     }
 
     private fun visit(rule: String): R3Node {

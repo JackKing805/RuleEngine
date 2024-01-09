@@ -46,40 +46,48 @@ sealed class ParseResult {
 
     //新定义的变量
 
-    sealed class OperateResult: ParseResult() {
-        data object Break:OperateResult()
-        data object Continue:OperateResult()
-        data class Return(val value:ValueResult<*>?):OperateResult()
+    sealed class OperateResult : ParseResult() {
+        data object Break : OperateResult()
+        data object Continue : OperateResult()
+        data class Return(val value: ValueResult<*>?) : OperateResult()
     }
 
-    sealed class Define: ParseResult() {
-        data class ClassDefine(val classStatement: R3Node.Statement.ClassStatement,val variableExpression: List<R3Node.Expression.VariableExpression>,val functionDefine: List<FunctionDefine>,val constructorDefine: List<ConstructorDefine>):
+    sealed class Define : ParseResult() {
+        data class ClassDefine(
+            val classStatement: R3Node.Statement.ClassStatement,
+            val variableExpression: List<R3Node.Expression.VariableExpression>,
+            val functionDefine: List<FunctionDefine>,
+            val constructorDefine: List<ConstructorDefine>
+        ) :
             Define()
-        data class FunctionDefine(val functionStatement: R3Node.Statement.FunctionStatement): Define()
-        data class ConstructorDefine(val functionStatement: R3Node.Statement.ConstructorFunctionStatement): Define()
+
+        data class FunctionDefine(val functionStatement: R3Node.Statement.FunctionStatement) : Define()
+        data class ConstructorDefine(val functionStatement: R3Node.Statement.ConstructorFunctionStatement) : Define()
 
         //只有使用def才能用这个参数返回
-        data class Variable(val name: String, val value: ValueResult<*>,val isConst:Boolean) : Define()
+        data class Variable(val name: String, val value: ValueResult<*>, val isConst: Boolean) : Define()
     }
 }
 
-fun ParseResult.isLambadaExpression():Boolean{
-    return when(this){
+fun ParseResult.isLambadaExpression(): Boolean {
+    return when (this) {
         is ParseResult.Define.ClassDefine -> false
         is ParseResult.Define.ConstructorDefine -> false
         is ParseResult.Define.FunctionDefine -> {
             this.functionStatement.functionName.text.startsWith("LambdaExpression_")
         }
+
         is ParseResult.Define.Variable -> this.value.isLambadaExpression()
         ParseResult.NoneResult -> false
         ParseResult.OperateResult.Break -> false
         ParseResult.OperateResult.Continue -> false
         is ParseResult.OperateResult.Return -> false
-        is ParseResult.ValueResult.AnyValueResult -> if (this.value is ParseResult.Define.FunctionDefine){
+        is ParseResult.ValueResult.AnyValueResult -> if (this.value is ParseResult.Define.FunctionDefine) {
             (this.value as ParseResult.Define.FunctionDefine).isLambadaExpression()
-        }else{
+        } else {
             false
         }
+
         is ParseResult.ValueResult.ArrayValueResult -> false
         is ParseResult.ValueResult.BooleanValueResult -> false
         is ParseResult.ValueResult.FloatValueResult -> false
@@ -88,33 +96,37 @@ fun ParseResult.isLambadaExpression():Boolean{
     }
 }
 
-fun ParseResult.toIntValueResultElseThrow():ParseResult.ValueResult.IntValueResult{
+fun ParseResult.toIntValueResultElseThrow(): ParseResult.ValueResult.IntValueResult {
     return when (this) {
         is ParseResult.ValueResult.IntValueResult -> this
-        else ->  throw RuntimeException("$this not a IntValueResult")
+        else -> throw RuntimeException("$this not a IntValueResult")
     }
 }
 
-fun ParseResult.toValueResultElseThrow(exceptionInfo:String?=null): ParseResult.ValueResult<*> {
+fun ParseResult.toValueResultElseThrow(exceptionInfo: String? = null): ParseResult.ValueResult<*> {
     return when (this) {
-        ParseResult.OperateResult.Break -> throw RuntimeException(exceptionInfo?:"$this not a valueResult")
-        ParseResult.OperateResult.Continue -> throw RuntimeException(exceptionInfo?:"$this not a valueResult")
+        ParseResult.OperateResult.Break -> throw RuntimeException(exceptionInfo ?: "$this not a valueResult")
+        ParseResult.OperateResult.Continue -> throw RuntimeException(exceptionInfo ?: "$this not a valueResult")
         is ParseResult.Define -> {
-            when(this){
+            when (this) {
                 is ParseResult.Define.ClassDefine,
                 is ParseResult.Define.ConstructorDefine,
                 is ParseResult.Define.FunctionDefine -> this.toValueResult()
+
                 is ParseResult.Define.Variable -> this.value
             }
         }
-        is ParseResult.NoneResult -> throw RuntimeException(exceptionInfo?:"$this not a valueResult")
+
+        is ParseResult.NoneResult -> throw RuntimeException(exceptionInfo ?: "$this not a valueResult")
         is ParseResult.ValueResult.AnyValueResult -> this
         is ParseResult.ValueResult.FloatValueResult -> this
         is ParseResult.ValueResult.IntValueResult -> this
         is ParseResult.ValueResult.StringValueResult -> this
         is ParseResult.ValueResult.BooleanValueResult -> this
         is ParseResult.ValueResult.ArrayValueResult -> this
-        is ParseResult.OperateResult.Return -> this.value?:throw RuntimeException(exceptionInfo?:"$this not a valueResult")
+        is ParseResult.OperateResult.Return -> this.value ?: throw RuntimeException(
+            exceptionInfo ?: "$this not a valueResult"
+        )
     }
 }
 
@@ -132,20 +144,21 @@ fun Any.toValueResult(): ParseResult.ValueResult<*> {
             this
         }
 
-        is ParseResult.Define->{
-            if (this is ParseResult.Define.Variable){
+        is ParseResult.Define -> {
+            if (this is ParseResult.Define.Variable) {
                 return this.value
-            }else if (this is ParseResult.Define.FunctionDefine){
+            } else if (this is ParseResult.Define.FunctionDefine) {
                 return ParseResult.ValueResult.AnyValueResult(this)
             }
             throw RuntimeException("$this not a valueResult")
         }
 
-        is ParseResult.OperateResult->{
-            when(this){
+        is ParseResult.OperateResult -> {
+            when (this) {
                 ParseResult.OperateResult.Break,
                 ParseResult.OperateResult.Continue -> throw RuntimeException("operate can't convert to valueResult")
-                is ParseResult.OperateResult.Return -> this.value?:throw RuntimeException("$this not a valueResult")
+
+                is ParseResult.OperateResult.Return -> this.value ?: throw RuntimeException("$this not a valueResult")
             }
         }
 
@@ -191,81 +204,3 @@ fun Any.toValueResult(): ParseResult.ValueResult<*> {
     }
 }
 
-
-fun <T> Any.toTargetTypeInstance(type: Class<T>): T {
-    if (this is ParseResult.ValueResult<*>) {
-        throw RuntimeException("please use ParseResult.ValueResult.value to convert to Other type")
-    }
-
-    if (this is R3Node) {
-        throw RuntimeException("please don't use R3Node convert to Other type")
-    }
-
-    return when (type) {
-        Long::class.java -> {
-            try {
-                this as Long
-            } catch (e: ClassCastException) {
-                this.toString().toLong()
-            }
-        }
-
-        Int::class.java -> {
-            try {
-                this as Int
-            } catch (e: ClassCastException) {
-                this.toString().toInt()
-            }
-        }
-
-        String::class.java -> {
-            this as String
-        }
-
-        Boolean::class.java -> {
-            this as Boolean
-        }
-
-        Double::class.java -> {
-            try {
-                this as Double
-            } catch (e: ClassCastException) {
-                this.toString().toDouble()
-            }
-        }
-
-        Float::class.java -> {
-            try {
-                this as Float
-            } catch (e: ClassCastException) {
-                this.toString().toFloat()
-            }
-        }
-
-        Short::class.java -> {
-            try {
-                this as Short
-            } catch (e: ClassCastException) {
-                this.toString().toShort()
-            }
-        }
-
-        Byte::class.java -> {
-            this as Byte
-        }
-
-        ByteArray::class.java -> {
-            this as ByteArray
-        }
-
-        Array::class.java -> {
-            this as Array<*>
-        }
-
-        List::class.java -> {
-            this as List<*>
-        }
-
-        else -> this
-    } as T
-}

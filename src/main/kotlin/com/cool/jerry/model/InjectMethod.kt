@@ -1,5 +1,6 @@
 package com.cool.jerry.model
 
+import com.cool.jerry.bridge.*
 import java.lang.reflect.Method
 
 data class InjectMethod(
@@ -11,7 +12,7 @@ data class InjectMethod(
         return method.invoke(ins, *params)
     }
 
-     val parameterCount = method.parameterCount
+    val parameterCount = method.parameterCount
 
     fun isSameMethod(nodes: List<ParseResult.ValueResult<*>>): Boolean {
         if (parameterCount == 0) {
@@ -25,13 +26,26 @@ data class InjectMethod(
         }
 
         for ((index, node) in nodes.withIndex()) {
-            val mp = method.parameters[index].type
-            if (mp == Any::class.java){
+            val methodParameter = method.parameters[index].type
+            if (methodParameter == Any::class.java){
                 continue
             }
+
             when (node) {
                 is ParseResult.ValueResult.AnyValueResult -> {
-                    if (mp == Any::class.java || node.value::class.java.isAssignableFrom(mp)) {
+                    val nodeValue = node.value
+                    if (nodeValue is ParseResult.Define.FunctionDefine){
+                        return when(val size = nodeValue.functionStatement.parameters.parameters.size){
+                            0->  methodParameter== FunctionCallBridge0::class.java
+                            1->  methodParameter== FunctionCallBridge1::class.java
+                            2->  methodParameter== FunctionCallBridge2::class.java
+                            3->  methodParameter== FunctionCallBridge3::class.java
+                            4->  methodParameter== FunctionCallBridge4::class.java
+                            else->throw RuntimeException("not support parameter size:$size for lambda bridge")
+                        }
+                    }
+
+                    if (methodParameter == Any::class.java || node.value::class.java.isAssignableFrom(methodParameter)) {
                         continue
                     }
                     return false
@@ -40,13 +54,13 @@ data class InjectMethod(
                 is ParseResult.ValueResult.FloatValueResult -> {
                     if (node.isDouble()) {
                         if (
-                            mp == Double::class.java
+                            methodParameter == Double::class.java
                         ) {
                             continue
                         }
                     } else {
                         if (
-                            mp == Float::class.java
+                            methodParameter == Float::class.java
                         ) {
                             continue
                         }
@@ -57,14 +71,14 @@ data class InjectMethod(
                 is ParseResult.ValueResult.IntValueResult -> {
                     if (node.isLong()) {
                         if (
-                            mp == Long::class.java
+                            methodParameter == Long::class.java
                         ) {
                             continue
                         }
                     } else {
                         if (
-                            mp == Int::class.java ||
-                            mp == Long::class.java
+                            methodParameter == Int::class.java ||
+                            methodParameter == Long::class.java
                         ) {
                             continue
                         }
@@ -74,7 +88,7 @@ data class InjectMethod(
 
                 is ParseResult.ValueResult.StringValueResult -> {
                     if (
-                        mp == String::class.java
+                        methodParameter == String::class.java
                     ) {
                         continue
                     }
@@ -82,14 +96,14 @@ data class InjectMethod(
                 }
 
                 is ParseResult.ValueResult.BooleanValueResult -> {
-                    if (mp == Boolean::class.java) {
+                    if (methodParameter == Boolean::class.java) {
                         continue
                     }
                     return false
                 }
 
                 is ParseResult.ValueResult.ArrayValueResult -> {
-                    if (mp == Array::class.java || mp == List::class.java) {
+                    if (methodParameter == Array::class.java || methodParameter == List::class.java) {
                         continue
                     }
                     return false
