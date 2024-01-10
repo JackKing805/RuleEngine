@@ -4,12 +4,10 @@ import com.cool.jerry.bridge.*
 import com.cool.jerry.bridge.impl.*
 import com.cool.jerry.exception.*
 import com.cool.jerry.model.*
-import kotlinx.coroutines.CoroutineScope
 import java.util.UUID
 import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.experimental.xor
-import kotlin.math.atan
 import kotlin.text.StringBuilder
 
 class R3Parser {
@@ -401,6 +399,8 @@ class R3Parser {
                                 "float * String",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math assign operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -425,6 +425,8 @@ class R3Parser {
                                 }
                                 str.toString()
                             }
+
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math assign operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -451,7 +453,13 @@ class R3Parser {
                                 "String * String",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math assign operate left or right can't be rangeDefine")
                         }
+                    }
+
+                    else -> {
+                        throw RuntimeException("math assign operate left or right can't be rangeDefine")
                     }
                 }
             }
@@ -509,6 +517,7 @@ class R3Parser {
     ): ParseResult {
         val left = parse(node.left, scopeParams, classes, functions).toValueResultElseThrow()
         val right = parse(node.right, scopeParams, classes, functions).toValueResultElseThrow()
+
         return when (node) {
             is R3Node.Expression.OperateExpression.MathOperateExpression.AddOperateExpression -> {
                 when (left) {
@@ -532,6 +541,8 @@ class R3Parser {
                                 "Float + Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -554,6 +565,8 @@ class R3Parser {
                                 "Int + Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -572,6 +585,8 @@ class R3Parser {
                                 "String + Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -590,10 +605,13 @@ class R3Parser {
                                 "Boolean + Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
                     is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport("Array +", node.source)
+                    is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
 
             }
@@ -624,6 +642,8 @@ class R3Parser {
                                 "Float / Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -646,6 +666,8 @@ class R3Parser {
                                 "Int / Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -676,6 +698,8 @@ class R3Parser {
                                 "String / Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -710,10 +734,13 @@ class R3Parser {
                                 "Boolean / Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
                     is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport("Array /", node.source)
+                    is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
             }
 
@@ -743,6 +770,8 @@ class R3Parser {
                                 "Float % Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -772,6 +801,8 @@ class R3Parser {
                                 "Int % Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -801,6 +832,8 @@ class R3Parser {
                                 "String % Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -835,12 +868,16 @@ class R3Parser {
                                 "Boolean % Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
                     is ParseResult.ValueResult.ArrayValueResult -> {
                         throw OpNotSupport("Array %", node.source)
                     }
+
+                    is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
             }
 
@@ -870,6 +907,8 @@ class R3Parser {
                                 "Float * Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -899,6 +938,8 @@ class R3Parser {
                                 "Int * Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -936,6 +977,8 @@ class R3Parser {
                                 "String * Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -970,12 +1013,16 @@ class R3Parser {
                                 "Boolean * Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
                     is ParseResult.ValueResult.ArrayValueResult -> {
                         throw OpNotSupport("Array *", node.source)
                     }
+
+                    is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
             }
 
@@ -1005,6 +1052,8 @@ class R3Parser {
                                 "Boolean - Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -1031,6 +1080,8 @@ class R3Parser {
                                 "Float - Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -1057,6 +1108,8 @@ class R3Parser {
                                 "Int - Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -1083,10 +1136,13 @@ class R3Parser {
                                 "String - Array",
                                 node.source
                             )
+
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
                     is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport("Array -", node.source)
+                    is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
             }
         }.let { result ->
@@ -1293,54 +1349,53 @@ class R3Parser {
             }
 
             is R3Node.Expression.LoopExpression -> {
-                val condition = parse(node.condition, scopeParams, classes, functions).toValueResultElseThrow()
-                if (condition !is ParseResult.ValueResult.ArrayValueResult) {
-                    throw RuntimeException("loop only support array:${node.source}")
-                }
-//                if (scopeParams.find { node.conditionProxy.text == it.paramName() } != null) {
-//                    throw RuntimeException("${node.conditionProxy.text} is already define at before:${node.source}")
-//                }
-
-                val scopeParamsCopy = mutableListOf(*scopeParams.toTypedArray())
                 var result: ParseResult = ParseResult.NoneResult
-                for (valueResult in condition.value) {
-                    val conditionProxy = Param(node.conditionProxy.text, valueResult)
-                    conditionProxy.replaceScopeParams(scopeParamsCopy, true)
-                    val loopBody = node.loopBody.toMutableList()
-                    result = loopBody.execute(scopeParamsCopy, classes, functions, true, true, true)
-                    if (result is ParseResult.OperateResult.Break) {
-                        break
-                    } else if (result is ParseResult.OperateResult.Continue) {
-                        continue
-                    } else if (result is ParseResult.OperateResult.Return) {
-                        break
+                val scopeParamsCopy = mutableListOf(*scopeParams.toTypedArray())
+                if (node.condition==null){
+                    while (true){
+                        val loopBody = node.loopBody.toMutableList()
+                        result = loopBody.execute(scopeParamsCopy, classes, functions, true, true, true)
+                        if (result is ParseResult.OperateResult.Break) {
+                            break
+                        } else if (result is ParseResult.OperateResult.Continue) {
+                            continue
+                        } else if (result is ParseResult.OperateResult.Return) {
+                            break
+                        }
                     }
-//                    for ((index, expression) in loopBody.withIndex()) {
-//                        val expressionResult = parse(expression, scopeParamsCopy, classes, functions)
-//                        val modifierResult = expressionResult.modifierScopeParams(scopeParamsCopy)
-//                        if (modifierResult != null) {
-//                            loopBody.modifierAfterIndexIdNameUntilNextSameOldName(
-//                                index,
-//                                expressionResult,
-//                                modifierResult
-//                            )
-//                        }
-//                        if (expressionResult is ParseResult.OperateResult) {
-//                            when (expressionResult) {
-//                                ParseResult.OperateResult.Break -> {
-//                                    break
-//                                }
-//
-//                                ParseResult.OperateResult.Continue -> {
-//                                    continue
-//                                }
-//
-//                                is ParseResult.OperateResult.Return -> {
-//                                    return expressionResult.value ?: ParseResult.NoneResult
-//                                }
-//                            }
-//                        }
-//                    }
+                }else{
+                    val condition = parse(node.condition, scopeParams, classes, functions).toValueResultElseThrow()
+                    if (condition is ParseResult.ValueResult.ArrayValueResult) {
+                        for (valueResult in condition.value) {
+                            val conditionProxy = Param(node.conditionProxy!!.text, valueResult)
+                            conditionProxy.replaceScopeParams(scopeParamsCopy, true)
+                            val loopBody = node.loopBody.toMutableList()
+                            result = loopBody.execute(scopeParamsCopy, classes, functions, true, true, true)
+                            if (result is ParseResult.OperateResult.Break) {
+                                break
+                            } else if (result is ParseResult.OperateResult.Continue) {
+                                continue
+                            } else if (result is ParseResult.OperateResult.Return) {
+                                break
+                            }
+                        }
+                    }else if(condition is ParseResult.ValueResult.RangeValueResult){
+                        for (valueResult in condition.value) {
+                            val conditionProxy = Param(node.conditionProxy!!.text, valueResult.toValueResult())
+                            conditionProxy.replaceScopeParams(scopeParamsCopy, true)
+                            val loopBody = node.loopBody.toMutableList()
+                            result = loopBody.execute(scopeParamsCopy, classes, functions, true, true, true)
+                            if (result is ParseResult.OperateResult.Break) {
+                                break
+                            } else if (result is ParseResult.OperateResult.Continue) {
+                                continue
+                            } else if (result is ParseResult.OperateResult.Return) {
+                                break
+                            }
+                        }
+                    }else{
+                        throw RuntimeException("loop only support array and range:${node.source}")
+                    }
                 }
                 result
             }
@@ -1513,8 +1568,15 @@ class R3Parser {
                         it.name == methodDefine && it.parameterCount == arguments.size
                     } ?: throw RefNotDefineMethodException(value.toString(), methodDefine)
                     val parameters = method.parameters
-                    val argumentsConverter = arguments.mapIndexed { index, it ->
-                        it.toTargetTypeInstance(parameters[index].type,scopeParamsCopy,classes,functions)
+                    val argumentsConverter = arguments.mapIndexed { index,it->
+                        val value = if (it.first is R3Node.Expression.Define.Identifier.ID) {
+                            scopeParams.find { a -> (it.first as R3Node.Expression.Define.Identifier.ID).text == a.paramName() }!!.parseResult
+                        } else {
+                            it.second
+                        }
+                        Param(parameters[index].name, value)
+                    }.mapIndexed { index, it ->
+                        it.parseResult.toValueResultElseThrow().value?.toTargetTypeInstance(parameters[index].type,scopeParamsCopy,classes,functions)
                     }
                     return method.invoke(value, *argumentsConverter.toTypedArray()).toValueResultElseNone()
                 }
@@ -1556,15 +1618,7 @@ class R3Parser {
                     throw RuntimeException("error range define,range start more than end:${node.source}")
                 }
 
-                val list = mutableListOf<Long>()
-                for (i in start.value..end.value) {
-                    list.add(i)
-                }
-                ParseResult.ValueResult.ArrayValueResult(
-                    list.map {
-                        it.toValueResult()
-                    }.toTypedArray()
-                )
+                ParseResult.ValueResult.RangeValueResult(LongRange(start = start.value,end.value))
             }
 
             is R3Node.Expression.ReturnExpression -> {
@@ -1595,6 +1649,7 @@ class R3Parser {
                     is ParseResult.ValueResult.BooleanValueResult,
                     is ParseResult.ValueResult.AnyValueResult,
                     is ParseResult.ValueResult.StringValueResult -> throw RuntimeException("signed Expr must be a Number:${node.source}")
+                    is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("signed Expr must be a Number:${node.source}")
                 }
             }
 
@@ -1638,6 +1693,19 @@ class R3Parser {
                         setParent(node.parent())
                     }
                 )
+            }
+
+            is R3Node.Expression.CatchErrorExpression -> {
+                var result: ParseResult = ParseResult.NoneResult
+                result = try {
+                    val scopeParamsCopy = mutableListOf(*scopeParams.toTypedArray())
+                    node.watchBody.toMutableList().execute(scopeParamsCopy,classes,functions,true,true,true)
+                }catch (e:Exception){
+                    val scopeParamsCopy = mutableListOf(*scopeParams.toTypedArray())
+                    Param(node.errorName.text,(e.cause?:e).toValueResult()).replaceScopeParams(scopeParamsCopy,true)
+                    node.errorBody.toMutableList().execute(scopeParamsCopy,classes,functions,true,true,true)
+                }
+                result
             }
         }
     }
@@ -1894,7 +1962,9 @@ class R3Parser {
 
                     is ParseResult.OperateResult.Return -> {
                         if (needReturn) {
-                            result = expressionResult.value ?: ParseResult.NoneResult
+                            result = ParseResult.OperateResult.Return(
+                                expressionResult.value
+                            )
                             break
                         } else {
                             throw RuntimeException("return can't use at hare:${expression.source}")
@@ -1937,6 +2007,8 @@ class R3Parser {
 
     /**
      * 如果有相同就替换，没有就添加
+     *
+     * @param REPLACE true:表示复制这个值，但HASH地址不同，否则，不改变值，只改变值的内容，hash地址一样
      */
     private fun MutableList<Param>.replaceScopeParams(scopeParams: MutableList<Param>, REPLACE: Boolean) {
         for (param in this) {
@@ -2011,13 +2083,12 @@ class R3Parser {
                         val indexValue = scopeParams[index].parseResult.toValueResultElseThrow()
                         when (indexValue) {
                             is ParseResult.ValueResult.AnyValueResult -> indexValue.value = value
-                            is ParseResult.ValueResult.ArrayValueResult -> indexValue.value =
-                                value as Array<ParseResult.ValueResult<*>>
-
+                            is ParseResult.ValueResult.ArrayValueResult -> indexValue.value = value as Array<ParseResult.ValueResult<*>>
                             is ParseResult.ValueResult.BooleanValueResult -> indexValue.value = value as Boolean
                             is ParseResult.ValueResult.FloatValueResult -> indexValue.value = value as Double
                             is ParseResult.ValueResult.IntValueResult -> indexValue.value = value as Long
                             is ParseResult.ValueResult.StringValueResult -> indexValue.value = value as String
+                            is ParseResult.ValueResult.RangeValueResult -> indexValue.value = value as LongRange
                         }
 
 //                        scopeParams[index].parseResult = value.toValueResult()

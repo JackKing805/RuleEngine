@@ -98,6 +98,8 @@ CONTINUE: 'continue';
 RETURN: 'return';
 IF: 'if';
 ELSE: 'else';
+WATCH: 'watch';
+ERROR: 'error';
 
 //类型定义
 BOOLEAN: 'true' | 'false';

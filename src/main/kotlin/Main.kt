@@ -1,3 +1,6 @@
+import com.cool.jerry.bridge.FunctionCallBridge0
+import com.cool.jerry.bridge.FunctionCallBridge1
+import com.cool.jerry.bridge.FunctionCallBridge2
 import com.cool.jerry.v3.R3Engine
 import kotlinx.coroutines.runBlocking
 
@@ -35,7 +38,7 @@ import kotlinx.coroutines.runBlocking
 //
 
 
-//todo 新增向kotlin传递回调函数的功能. bug:目前Range定义太大的话会将java虚拟机撑满
+//todo 新增 loop {} 无限循环语法,watch{}error(e){},RangeValue ,fixbug:修复 if then,if else 无法使用continue的问题, 修复return 无效的问题,修复外部类无法调用回调函数,
 fun main(args: Array<String>) {
     testParse()
 }
@@ -77,16 +80,14 @@ private fun testParse() {
     """
 
     val pp2 = """
-        def lll = ()->{
-            return "i'm b"
-        }
-        
-        println(lll())
+       def c = 0->@MAX_INT
+       loop c to d{
+        println(d)
+        sleep(500)
+       }
     """
     val visitor = R3Engine()
-
     visitor.execute(pp2).let {
         println(it.result.result)
     }
 }
-

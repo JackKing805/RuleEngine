@@ -196,6 +196,24 @@ public interface RuleParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLamdaExpressionDefine(RuleParser.LamdaExpressionDefineContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link RuleParser#catchErrorDefine}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCatchErrorDefine(RuleParser.CatchErrorDefineContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link RuleParser#watchBody}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitWatchBody(RuleParser.WatchBodyContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link RuleParser#errorBody}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitErrorBody(RuleParser.ErrorBodyContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code ConstVariableExpression}
 	 * labeled alternative in {@link RuleParser#expression}.
 	 * @param ctx the parse tree
@@ -223,6 +241,13 @@ public interface RuleParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitObjectPropertiesExpression(RuleParser.ObjectPropertiesExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code CatchErrorExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCatchErrorExpression(RuleParser.CatchErrorExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code MulDivYuExpression}
 	 * labeled alternative in {@link RuleParser#expression}.

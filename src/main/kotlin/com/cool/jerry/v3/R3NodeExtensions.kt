@@ -49,9 +49,12 @@ fun R3Node.haveIdEquals(name:String):Boolean{
             return false
         }
         is R3Node.Expression.LoopExpression -> {
-            if (this.condition.haveIdEquals(name)){
-                return true
+            if (this.condition!=null){
+                if (this.condition.haveIdEquals(name)){
+                    return true
+                }
             }
+
             for (expression in this.loopBody) {
                 if (expression.haveIdEquals(name)){
                     return true
@@ -183,6 +186,23 @@ fun R3Node.haveIdEquals(name:String):Boolean{
             }
             return false
         }
+
+        is R3Node.Expression.CatchErrorExpression -> {
+            for (expression in this.watchBody) {
+                if (expression.haveIdEquals(name)){
+                    return true
+                }
+            }
+            if (this.errorName.haveIdEquals(name)){
+                return true
+            }
+            for (expression in this.errorBody) {
+                if (expression.haveIdEquals(name)){
+                    return true
+                }
+            }
+            return false
+        }
     }
 }
 
@@ -236,7 +256,7 @@ fun R3Node.modifierOldIdToNewIdName(oldName:String,newName:String):R3Node{
         }
         is R3Node.Expression.LoopExpression -> {
             copy(
-                condition = condition.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression,
+                condition = condition?.modifierOldIdToNewIdName(oldName,newName) as? R3Node.Expression,
                 loopBody = loopBody.map {
                     it.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
                 }
@@ -588,6 +608,20 @@ fun R3Node.modifierOldIdToNewIdName(oldName:String,newName:String):R3Node{
                 setParent(this@modifierOldIdToNewIdName.parent())
             }
         }
+
+        is R3Node.Expression.CatchErrorExpression -> {
+            copy(
+                watchBody = watchBody.map {
+                    it.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+                },
+                errorBody = errorBody.map {
+                    it.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
+                },
+                errorName = errorName.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression.Define.Identifier.ID
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
     }.let {
         return it
     }
@@ -627,7 +661,7 @@ fun R3Node.modifierOldIdToNewIdName2(oldName:String,newName:String):R3Node{
             }
         }
         is R3Node.Expression.LoopExpression -> {
-            condition.modifierOldIdToNewIdName2(oldName,newName)
+            condition?.modifierOldIdToNewIdName2(oldName,newName)
             loopBody.onEach {
                 it.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
             }
@@ -718,6 +752,16 @@ fun R3Node.modifierOldIdToNewIdName2(oldName:String,newName:String):R3Node{
             parameters.modifierOldIdToNewIdName2(oldName,newName)
             functionBody.onEach {
                 it.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
+            }
+        }
+
+        is R3Node.Expression.CatchErrorExpression -> {
+            errorName.modifierOldIdToNewIdName2(oldName,newName)
+            watchBody.onEach {
+                it.modifierOldIdToNewIdName2(oldName,newName)
+            }
+            errorBody.onEach {
+                it.modifierOldIdToNewIdName2(oldName,newName)
             }
         }
     }

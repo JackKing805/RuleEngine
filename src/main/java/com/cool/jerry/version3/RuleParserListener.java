@@ -318,6 +318,36 @@ public interface RuleParserListener extends ParseTreeListener {
 	 */
 	void exitLamdaExpressionDefine(RuleParser.LamdaExpressionDefineContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link RuleParser#catchErrorDefine}.
+	 * @param ctx the parse tree
+	 */
+	void enterCatchErrorDefine(RuleParser.CatchErrorDefineContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuleParser#catchErrorDefine}.
+	 * @param ctx the parse tree
+	 */
+	void exitCatchErrorDefine(RuleParser.CatchErrorDefineContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link RuleParser#watchBody}.
+	 * @param ctx the parse tree
+	 */
+	void enterWatchBody(RuleParser.WatchBodyContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuleParser#watchBody}.
+	 * @param ctx the parse tree
+	 */
+	void exitWatchBody(RuleParser.WatchBodyContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link RuleParser#errorBody}.
+	 * @param ctx the parse tree
+	 */
+	void enterErrorBody(RuleParser.ErrorBodyContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuleParser#errorBody}.
+	 * @param ctx the parse tree
+	 */
+	void exitErrorBody(RuleParser.ErrorBodyContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code ConstVariableExpression}
 	 * labeled alternative in {@link RuleParser#expression}.
 	 * @param ctx the parse tree
@@ -365,6 +395,18 @@ public interface RuleParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitObjectPropertiesExpression(RuleParser.ObjectPropertiesExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code CatchErrorExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterCatchErrorExpression(RuleParser.CatchErrorExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code CatchErrorExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitCatchErrorExpression(RuleParser.CatchErrorExpressionContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code MulDivYuExpression}
 	 * labeled alternative in {@link RuleParser#expression}.

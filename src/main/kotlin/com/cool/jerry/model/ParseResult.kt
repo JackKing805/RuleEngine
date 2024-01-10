@@ -40,11 +40,10 @@ sealed class ParseResult {
                 return value.contentHashCode()
             }
         }
+        data class RangeValueResult(override var value: LongRange):ValueResult<LongRange>(value)
     }
 
     data object NoneResult : ParseResult()
-
-    //新定义的变量
 
     sealed class OperateResult : ParseResult() {
         data object Break : OperateResult()
@@ -52,6 +51,7 @@ sealed class ParseResult {
         data class Return(val value: ValueResult<*>?) : OperateResult()
     }
 
+    //新定义的变量
     sealed class Define : ParseResult() {
         data class ClassDefine(
             val classStatement: R3Node.Statement.ClassStatement,
@@ -93,6 +93,7 @@ fun ParseResult.isLambadaExpression(): Boolean {
         is ParseResult.ValueResult.FloatValueResult -> false
         is ParseResult.ValueResult.IntValueResult -> false
         is ParseResult.ValueResult.StringValueResult -> false
+        is ParseResult.ValueResult.RangeValueResult -> false
     }
 }
 
@@ -127,6 +128,8 @@ fun ParseResult.toValueResultElseThrow(exceptionInfo: String? = null): ParseResu
         is ParseResult.OperateResult.Return -> this.value ?: throw RuntimeException(
             exceptionInfo ?: "$this not a valueResult"
         )
+
+        is ParseResult.ValueResult.RangeValueResult -> this
     }
 }
 

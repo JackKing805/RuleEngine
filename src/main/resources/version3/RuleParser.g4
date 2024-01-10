@@ -93,6 +93,7 @@ ifExpression
 
 ifThenBody
     : expression
+    | continueExpression
     | breakExpression
     | returnExpression
     | returnEmptyExpression
@@ -100,6 +101,7 @@ ifThenBody
 
 ifElseBody
     : expression
+    | continueExpression
     | breakExpression
     | returnExpression
     | returnEmptyExpression
@@ -163,6 +165,26 @@ lamdaExpressionDefine
     ;
 
 
+catchErrorDefine
+    : WATCH '{' watchBody* '}' ERROR '(' ID ')' '{' errorBody* '}'
+    ;
+
+watchBody
+    : expression
+    | continueExpression
+    | breakExpression
+    | returnExpression
+    | returnEmptyExpression
+    ;
+
+errorBody
+    : expression
+    | continueExpression
+    | breakExpression
+    | returnExpression
+    | returnEmptyExpression
+    ;
+
 expression
     : methodCallExpression                                                      #CallMethodExpression
     | parenthesizedExpression                                                   #PriorityExpression
@@ -187,12 +209,13 @@ expression
     | expression op=MOD_ASSIGN expression                                       #ModAssignExpression
     | expression op=('&&' | '||' | '==' |'!=' | '>=' | '<=' | '<' | '>') expression         #CompareExpression
     | ifExpression                                                              #DefineIfExpression
-    | LOOP expression TO ID '{' loopBody* '}'                                   #LoopExpression
+    | LOOP (expression TO ID)? '{' loopBody* '}'                                #LoopExpression
     | expression '->' expression                                                #DefineRangeExpression
     | numberAutoIncreaseReduceExpression                                        #NumberAutoExpression
     | expression '.' ID                                                         #ObjectPropertiesExpression
     | '-' expression                                                            #SignedExpression
     | lamdaExpressionDefine                                                     #LamdaExpression
+    | catchErrorDefine                                                          #CatchErrorExpression
     ;
 
 

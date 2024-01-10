@@ -1,12 +1,18 @@
 package com.cool.jerry.extern
 
 import com.cool.jerry.bridge.FunctionCallBridge0
+import okhttp3.OkHttp
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import java.util.UUID
 
 /**
  * 内嵌方法
  */
 object Embed {
+
+
     @JvmStatic
     fun logln(msg:String){
         println(msg)
@@ -109,5 +115,16 @@ object Embed {
         kotlin.concurrent.thread {
             functionCallBridge0.call()
         }
+    }
+
+    @JvmStatic
+    fun get(url:String): Response {
+        val okHttpClient = OkHttpClient()
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .build()
+        val newCall = okHttpClient.newCall(request)
+        return newCall.execute()
     }
 }

@@ -377,6 +377,42 @@ public class RuleParserBaseListener implements RuleParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterCatchErrorDefine(RuleParser.CatchErrorDefineContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCatchErrorDefine(RuleParser.CatchErrorDefineContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterWatchBody(RuleParser.WatchBodyContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitWatchBody(RuleParser.WatchBodyContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterErrorBody(RuleParser.ErrorBodyContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitErrorBody(RuleParser.ErrorBodyContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterConstVariableExpression(RuleParser.ConstVariableExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -420,6 +456,18 @@ public class RuleParserBaseListener implements RuleParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitObjectPropertiesExpression(RuleParser.ObjectPropertiesExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterCatchErrorExpression(RuleParser.CatchErrorExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCatchErrorExpression(RuleParser.CatchErrorExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

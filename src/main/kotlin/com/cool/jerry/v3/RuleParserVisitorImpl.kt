@@ -44,8 +44,8 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
                     }
                 }
                 is R3Node.Expression.LoopExpression -> {
-                    this.condition.levelSet(parent)
-                    this.conditionProxy.levelSet(this)
+                    this.condition?.levelSet(parent)
+                    this.conditionProxy?.levelSet(this)
                     for (expression in this.loopBody) {
                         expression.levelSet(this)
                     }
@@ -146,6 +146,16 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
                 is R3Node.Expression.LambdaExpression -> {
                     this.parameters.levelSet(this)
                     for (expression in this.functionBody) {
+                        expression.levelSet(this)
+                    }
+                }
+
+                is R3Node.Expression.CatchErrorExpression -> {
+                    this.errorName.levelSet(this)
+                    for (expression in this.watchBody) {
+                        expression.levelSet(this)
+                    }
+                    for (expression in this.errorBody) {
                         expression.levelSet(this)
                     }
                 }
@@ -563,19 +573,58 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
     }
 
     override fun visitIfThenBody(ctx: RuleParser.IfThenBodyContext): R3Node {
-        return visit(ctx.expression()?:ctx.breakExpression()?:ctx.returnExpression()?:ctx.returnEmptyExpression())
+        return visit(ctx.expression()?:ctx.breakExpression()?:ctx.returnExpression()?:ctx.returnEmptyExpression()?:ctx.continueExpression())
     }
 
     override fun visitIfElseBody(ctx: RuleParser.IfElseBodyContext): R3Node {
-        return visit(ctx.expression()?:ctx.breakExpression()?:ctx.returnExpression()?:ctx.returnEmptyExpression())
+        return visit(ctx.expression()?:ctx.breakExpression()?:ctx.returnExpression()?:ctx.returnEmptyExpression()?:ctx.continueExpression())
+    }
+
+    override fun visitCatchErrorExpression(ctx: RuleParser.CatchErrorExpressionContext): R3Node {
+        return visit(ctx.catchErrorDefine())
+    }
+
+    override fun visitCatchErrorDefine(ctx: RuleParser.CatchErrorDefineContext): R3Node {
+        val errorName = ctx.ID().toIdExpression() as R3Node.Expression.Define.Identifier.ID
+        val watchBody = ctx.watchBody()?.mapNotNull {
+            visit(it) as R3Node.Expression
+        } ?: emptyList()
+        val errorBody = ctx.errorBody()?.mapNotNull {
+            visit(it) as R3Node.Expression
+        } ?: emptyList()
+        return R3Node.Expression.CatchErrorExpression(
+            ctx.text,
+            watchBody,
+            errorBody,
+            errorName
+        )
+    }
+
+    override fun visitWatchBody(ctx: RuleParser.WatchBodyContext): R3Node {
+        return visit(ctx.expression()?:ctx.breakExpression()?:ctx.returnExpression()?:ctx.returnEmptyExpression()?:ctx.continueExpression())
+    }
+
+    override fun visitErrorBody(ctx: RuleParser.ErrorBodyContext): R3Node {
+        return visit(ctx.expression()?:ctx.breakExpression()?:ctx.returnExpression()?:ctx.returnEmptyExpression()?:ctx.continueExpression())
     }
 
     override fun visitLoopExpression(ctx: RuleParser.LoopExpressionContext): R3Node {
-        val condition = visit(ctx.expression()) as R3Node.Expression
-        val conditionProxy = ctx.ID().toIdExpression() as R3Node.Expression.Define.Identifier.ID
         val loopBody = ctx.loopBody()?.mapNotNull {
             visit(it) as R3Node.Expression
         } ?: emptyList()
+
+        if (ctx.expression()==null){
+            return R3Node.Expression.LoopExpression(
+                ctx.text,
+                null,
+                null,
+                loopBody
+            )
+        }
+
+
+        val condition = visit(ctx.expression()) as R3Node.Expression
+        val conditionProxy = ctx.ID().toIdExpression() as R3Node.Expression.Define.Identifier.ID
         return R3Node.Expression.LoopExpression(
             ctx.text,
             condition,

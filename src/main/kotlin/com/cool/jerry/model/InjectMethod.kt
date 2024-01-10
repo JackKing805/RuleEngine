@@ -108,6 +108,13 @@ data class InjectMethod(
                     }
                     return false
                 }
+
+                is ParseResult.ValueResult.RangeValueResult -> {
+                    if (methodParameter == LongRange::class.java) {
+                        continue
+                    }
+                    return false
+                }
             }
         }
 

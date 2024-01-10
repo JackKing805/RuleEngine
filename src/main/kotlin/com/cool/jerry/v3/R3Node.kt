@@ -120,8 +120,8 @@ sealed class R3Node(
 
         data class LoopExpression(
             override var source: String,
-            val condition: Expression,
-            val conditionProxy: Define.Identifier.ID,
+            val condition: Expression?,
+            val conditionProxy: Define.Identifier.ID?,
             val loopBody: List<Expression>
         ) : Expression(source)
 
@@ -162,6 +162,13 @@ sealed class R3Node(
             val functionBody: List<Expression>
         ):Expression(source)
 
+
+        data class CatchErrorExpression(
+            override var source: String,
+            val watchBody:List<Expression>,
+            val errorBody:List<Expression>,
+            val errorName:Define.Identifier.ID
+        ):Expression(source)
 
         sealed class OperateExpression(source: String) : Expression(source) {
             sealed class BitOperateExpression(source: String, open val left: Expression, open val right: Expression) :
