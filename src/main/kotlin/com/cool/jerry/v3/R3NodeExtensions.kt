@@ -4,7 +4,7 @@ import com.cool.jerry.model.Param
 import com.cool.jerry.model.ParseResult
 
 
-fun R3Node.haveIdEquals(name:String):Boolean{
+internal fun R3Node.haveIdEquals(name:String):Boolean{
     when(this){
         is R3Node.Expression.ArrayAccessExpression -> {
             return this.array.haveIdEquals(name)
@@ -203,11 +203,23 @@ fun R3Node.haveIdEquals(name:String):Boolean{
             }
             return false
         }
+
+        is R3Node.Expression.MapExpression -> {
+            for (entry in mapExpression) {
+                if (entry.key.haveIdEquals(name)){
+                    return true
+                }
+                if (entry.value.haveIdEquals(name)){
+                    return true
+                }
+            }
+            return false
+        }
     }
 }
 
 @Deprecated("use version2", replaceWith = ReplaceWith("modifierOldIdToNewIdName2(oldName,newName)"))
-fun R3Node.modifierOldIdToNewIdName(oldName:String,newName:String):R3Node{
+internal fun R3Node.modifierOldIdToNewIdName(oldName:String,newName:String):R3Node{
     when(this){
         is R3Node.Expression.ArrayAccessExpression -> {
             copy(array = this.array.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression).apply {
@@ -622,13 +634,23 @@ fun R3Node.modifierOldIdToNewIdName(oldName:String,newName:String):R3Node{
                 setParent(this@modifierOldIdToNewIdName.parent())
             }
         }
+
+        is R3Node.Expression.MapExpression -> {
+            copy(
+                mapExpression = mapExpression.map {
+                    it.key.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression to it.value.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
+                }.toMap()
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
     }.let {
         return it
     }
 }
 
 
-fun R3Node.modifierOldIdToNewIdName2(oldName:String,newName:String):R3Node{
+internal fun R3Node.modifierOldIdToNewIdName2(oldName:String,newName:String):R3Node{
     when(this){
         is R3Node.Expression.ArrayAccessExpression -> {
             this.array.modifierOldIdToNewIdName2(oldName,newName)
@@ -764,8 +786,177 @@ fun R3Node.modifierOldIdToNewIdName2(oldName:String,newName:String):R3Node{
                 it.modifierOldIdToNewIdName2(oldName,newName)
             }
         }
+
+        is R3Node.Expression.MapExpression -> {
+            for (entry in mapExpression) {
+                entry.key.modifierOldIdToNewIdName2(oldName,newName)
+                entry.value.modifierOldIdToNewIdName2(oldName,newName)
+            }
+        }
     }
     return this
 }
 
 
+internal fun R3Node.levelSet(parent:R3Node?){
+    this.setParent(parent)
+    when(this){
+        is R3Node.Expression.ArrayAccessExpression -> {
+            this.array.levelSet(parent)
+            this.index.levelSet(parent)
+        }
+        is R3Node.Expression.OperateExpression.AssignOperateExpression -> {
+            this.left.levelSet(parent)
+            this.right.levelSet(parent)
+        }
+        is R3Node.Expression.BreakExpression -> {
+            this.setParent(parent)
+        }
+        is R3Node.Expression.ContinueExpression -> {
+            this.setParent(parent)
+        }
+        is R3Node.Expression.Define.Identifier.ID -> {
+            this.setParent(parent)
+        }
+        is R3Node.Expression.Define.Identifier.ID_REF -> {
+            this.setParent(parent)
+        }
+        is R3Node.Expression.Define.Params -> {
+            for (parameter in this.parameters) {
+                parameter.levelSet(parent)
+            }
+        }
+        is R3Node.Expression.IfExpression -> {
+            this.condition.levelSet(parent)
+            for (expression in this.thenBody) {
+                expression.levelSet(this)
+            }
+            for (expression in this.elseBody) {
+                expression.levelSet(this)
+            }
+        }
+        is R3Node.Expression.LoopExpression -> {
+            this.condition?.levelSet(parent)
+            this.conditionProxy?.levelSet(this)
+            for (expression in this.loopBody) {
+                expression.levelSet(this)
+            }
+        }
+        is R3Node.Expression.MethodCallExpression -> {
+            this.methodName.levelSet(parent)
+            for (argument in this.arguments) {
+                argument.levelSet(parent)
+            }
+        }
+        is R3Node.Expression.ObjectMethodCallExpression -> {
+            this.objectExpression.levelSet(parent)
+            this.methodName.levelSet(this)
+            for (argument in this.arguments) {
+                argument.levelSet(parent)
+            }
+        }
+        is R3Node.Expression.ObjectPropertiesExpression -> {
+            this.objectExpression.levelSet(parent)
+            this.propertiesName.levelSet(this)
+        }
+        is R3Node.Expression.OperateExpression.BitOperateExpression -> {
+            this.left.levelSet(parent)
+            this.right.levelSet(parent)
+        }
+        is R3Node.Expression.OperateExpression.CompareOperateExpression->{
+            this.left.levelSet(parent)
+            this.right.levelSet(parent)
+        }
+        is R3Node.Expression.OperateExpression.MathAssignOperateExpression->{
+            this.left.levelSet(parent)
+            this.right.levelSet(parent)
+        }
+        is R3Node.Expression.OperateExpression.MathOperateExpression->{
+            this.left.levelSet(parent)
+            this.right.levelSet(parent)
+        }
+        is R3Node.Expression.OperateExpression.NumberAutoOperateExpression->{
+            this.who.levelSet(parent)
+        }
+        is R3Node.Expression.RangeExpression -> {
+            this.start.levelSet(parent)
+            this.end.levelSet(parent)
+        }
+        is R3Node.Expression.ReturnExpression -> {
+            this.expression?.levelSet(parent)
+        }
+        is R3Node.Expression.TypeExpression.ArrayExpression -> {
+            for (typeExpression in this.value) {
+                typeExpression.levelSet(parent)
+            }
+        }
+        is R3Node.Expression.TypeExpression.BooleanTypeExpression -> {
+        }
+        is R3Node.Expression.TypeExpression.FloatNumberTypeExpression -> {
+
+        }
+        is R3Node.Expression.TypeExpression.NumberTypeExpression -> {
+
+        }
+        is R3Node.Expression.TypeExpression.StringTypeExpression -> {
+
+        }
+        is R3Node.Expression.VariableExpression -> {
+            this.variableName.levelSet(parent)
+            this.variableValue.levelSet(parent)
+        }
+        is R3Node.Program -> {
+            for (statement in this.statements) {
+                statement.levelSet(parent)
+            }
+        }
+        is R3Node.Statement.ClassStatement -> {
+            this.className.levelSet(parent)
+            this.parameters.levelSet(this)
+            for (r3Node in this.classBody) {
+                r3Node.levelSet(this)
+            }
+        }
+        is R3Node.Statement.FunctionStatement -> {
+            this.functionName.levelSet(parent)
+            this.parameters.levelSet(this)
+            for (expression in this.functionBody) {
+                expression.levelSet(this)
+            }
+        }
+
+        is R3Node.Statement.ConstructorFunctionStatement -> {
+//                    this.functionStatement.functionName.levelSet(this)
+//                    this.functionStatement.parameters.levelSet(this)
+            this.functionStatement.levelSet(this)
+        }
+
+        is R3Node.Expression.SignedExpression ->{
+            this.innerExpression.levelSet(parent)
+        }
+
+        is R3Node.Expression.LambdaExpression -> {
+            this.parameters.levelSet(this)
+            for (expression in this.functionBody) {
+                expression.levelSet(this)
+            }
+        }
+
+        is R3Node.Expression.CatchErrorExpression -> {
+            this.errorName.levelSet(this)
+            for (expression in this.watchBody) {
+                expression.levelSet(this)
+            }
+            for (expression in this.errorBody) {
+                expression.levelSet(this)
+            }
+        }
+
+        is R3Node.Expression.MapExpression -> {
+            for (entry in mapExpression) {
+                entry.key.levelSet(parent)
+                entry.value.levelSet(parent)
+            }
+        }
+    }
+}

@@ -413,6 +413,30 @@ public class RuleParserBaseListener implements RuleParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterMapDefine(RuleParser.MapDefineContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMapDefine(RuleParser.MapDefineContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterMapEntry(RuleParser.MapEntryContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMapEntry(RuleParser.MapEntryContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterConstVariableExpression(RuleParser.ConstVariableExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -612,6 +636,18 @@ public class RuleParserBaseListener implements RuleParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitDefineNameExpression(RuleParser.DefineNameExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterMapExpression(RuleParser.MapExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMapExpression(RuleParser.MapExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

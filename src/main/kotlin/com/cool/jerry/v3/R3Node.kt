@@ -125,10 +125,11 @@ sealed class R3Node(
             val loopBody: List<Expression>
         ) : Expression(source)
 
+        //既可以访问数据也可以访问map
         data class ArrayAccessExpression(
             override var source: String,
             val array: Expression,
-            val index: TypeExpression.NumberTypeExpression
+            val index: Expression
         ) : Expression(source)
 
         data class ObjectMethodCallExpression(
@@ -168,6 +169,12 @@ sealed class R3Node(
             val watchBody:List<Expression>,
             val errorBody:List<Expression>,
             val errorName:Define.Identifier.ID
+        ):Expression(source)
+
+
+        data class MapExpression(
+            override var source: String,
+            val mapExpression: Map<Expression,Expression>
         ):Expression(source)
 
         sealed class OperateExpression(source: String) : Expression(source) {

@@ -118,6 +118,11 @@ object Embed {
     }
 
     @JvmStatic
+    fun readInput():String?{
+        return readlnOrNull()
+    }
+
+    @JvmStatic
     fun get(url:String): Response {
         val okHttpClient = OkHttpClient()
         val request = Request.Builder()

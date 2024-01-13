@@ -41,6 +41,7 @@ sealed class ParseResult {
             }
         }
         data class RangeValueResult(override var value: LongRange):ValueResult<LongRange>(value)
+        data class MapValueResult(override var value: MutableMap<ValueResult<*>,ValueResult<*>>):ValueResult<MutableMap<ValueResult<*>,ValueResult<*>>>(value)
     }
 
     data object NoneResult : ParseResult()
@@ -69,7 +70,7 @@ sealed class ParseResult {
     }
 }
 
-fun ParseResult.isLambadaExpression(): Boolean {
+internal fun ParseResult.isLambadaExpression(): Boolean {
     return when (this) {
         is ParseResult.Define.ClassDefine -> false
         is ParseResult.Define.ConstructorDefine -> false
@@ -94,17 +95,18 @@ fun ParseResult.isLambadaExpression(): Boolean {
         is ParseResult.ValueResult.IntValueResult -> false
         is ParseResult.ValueResult.StringValueResult -> false
         is ParseResult.ValueResult.RangeValueResult -> false
+        is ParseResult.ValueResult.MapValueResult -> false
     }
 }
 
-fun ParseResult.toIntValueResultElseThrow(): ParseResult.ValueResult.IntValueResult {
+internal fun ParseResult.toIntValueResultElseThrow(): ParseResult.ValueResult.IntValueResult {
     return when (this) {
         is ParseResult.ValueResult.IntValueResult -> this
         else -> throw RuntimeException("$this not a IntValueResult")
     }
 }
 
-fun ParseResult.toValueResultElseThrow(exceptionInfo: String? = null): ParseResult.ValueResult<*> {
+internal fun ParseResult.toValueResultElseThrow(exceptionInfo: String? = null): ParseResult.ValueResult<*> {
     return when (this) {
         ParseResult.OperateResult.Break -> throw RuntimeException(exceptionInfo ?: "$this not a valueResult")
         ParseResult.OperateResult.Continue -> throw RuntimeException(exceptionInfo ?: "$this not a valueResult")
@@ -130,10 +132,11 @@ fun ParseResult.toValueResultElseThrow(exceptionInfo: String? = null): ParseResu
         )
 
         is ParseResult.ValueResult.RangeValueResult -> this
+        is ParseResult.ValueResult.MapValueResult -> this
     }
 }
 
-fun Any?.toValueResultElseNone(): ParseResult {
+internal fun Any?.toValueResultElseNone(): ParseResult {
     return if (this is Unit || this == null) {
         ParseResult.NoneResult
     } else {
@@ -141,7 +144,7 @@ fun Any?.toValueResultElseNone(): ParseResult {
     }
 }
 
-fun Any.toValueResult(): ParseResult.ValueResult<*> {
+internal fun Any.toValueResult(): ParseResult.ValueResult<*> {
     return when (this) {
         is ParseResult.ValueResult<*> -> {
             this

@@ -185,6 +185,16 @@ errorBody
     | returnEmptyExpression
     ;
 
+
+mapDefine
+    : '{' mapEntry* '}'
+    ;
+
+mapEntry
+    : expression COLON expression
+    ;
+
+
 expression
     : methodCallExpression                                                      #CallMethodExpression
     | parenthesizedExpression                                                   #PriorityExpression
@@ -192,7 +202,7 @@ expression
     | defineExpression                                                          #DefineNameExpression
     | typeExpression                                                            #DefineTypeExpression
     | array                                                                     #ArrayExpression
-    | expression '[' NUMBER ']'                                                 #ArrayAccessExpression
+    | expression '[' expression ']'                                             #ArrayAccessExpression
     | defineVariable                                                            #VariableExpression
     | defineConstVariable                                                       #ConstVariableExpression
     | expression op=(BIT_LEFT | BIT_RIGHT | '&' | '|' | '^') expression         #BitOperationExpression
@@ -216,6 +226,7 @@ expression
     | '-' expression                                                            #SignedExpression
     | lamdaExpressionDefine                                                     #LamdaExpression
     | catchErrorDefine                                                          #CatchErrorExpression
+    | mapDefine                                                                 #MapExpression
     ;
 
 

@@ -156,6 +156,7 @@ XOR_ASSIGN     : '^=';
 MOD_ASSIGN     : '%=';
 
 AT       : '@';
+COLON    : ':';
 
 
 //定义ID

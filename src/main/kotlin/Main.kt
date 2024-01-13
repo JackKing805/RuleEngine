@@ -1,6 +1,7 @@
 import com.cool.jerry.bridge.FunctionCallBridge0
 import com.cool.jerry.bridge.FunctionCallBridge1
 import com.cool.jerry.bridge.FunctionCallBridge2
+import com.cool.jerry.model.InjectMethod
 import com.cool.jerry.v3.R3Engine
 import kotlinx.coroutines.runBlocking
 
@@ -38,7 +39,7 @@ import kotlinx.coroutines.runBlocking
 //
 
 
-//todo 新增 loop {} 无限循环语法,watch{}error(e){},RangeValue ,fixbug:修复 if then,if else 无法使用continue的问题, 修复return 无效的问题,修复外部类无法调用回调函数,
+//todo task: 增加main方法入口,应用必须有main方法才会执行,增加多文件执行,增加map定义，map访问,fixbug:修复方法,变量和类可以重复定义的bug
 fun main(args: Array<String>) {
     testParse()
 }
@@ -80,14 +81,46 @@ private fun testParse() {
     """
 
     val pp2 = """
-       def c = 0->@MAX_INT
-       loop c to d{
-        println(d)
-        sleep(500)
+       def mainName = "mainName"     
+     
+       def map = { mainName:"cc" }
+       def array = [1]
+       def main(){
+            println(@C.b["a"])
+            println(map[mainName])
+            println(array[0])
        }
     """
+
+    val pp3 = """
+       def mainName1 = "mainName1"
+    """
     val visitor = R3Engine()
-    visitor.execute(pp2).let {
-        println(it.result.result)
+    visitor.setEnvironment("C", C())
+    visitor.setEnvironmentMethod(
+        InjectMethod(
+            "call",
+            C::class.java.getMethod(
+                "callBack",
+                Int::class.java,
+                FunctionCallBridge2::class.java
+            ),
+            C()
+        )
+    )
+    println(visitor.execute(pp2,pp3).result?.result)
+}
+
+open class A {
+    open val a = "A.a"
+}
+
+class C : A() {
+    val c = a
+    val b = mapOf("a" to 123123)
+
+    fun callBack(c: Int, functionCallBridge0: FunctionCallBridge2): String {
+        functionCallBridge0.call(c, 2)
+        return "false"
     }
 }

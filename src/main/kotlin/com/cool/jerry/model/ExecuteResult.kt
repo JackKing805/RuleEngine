@@ -4,7 +4,7 @@ import com.cool.jerry.v3.R3Node
 
 data class ExecuteResult(
     val program:R3Node,
-    val result: Result
+    val result: Result?
 )
 
 data class Result(

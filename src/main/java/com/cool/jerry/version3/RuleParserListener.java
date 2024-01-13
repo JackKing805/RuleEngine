@@ -348,6 +348,26 @@ public interface RuleParserListener extends ParseTreeListener {
 	 */
 	void exitErrorBody(RuleParser.ErrorBodyContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link RuleParser#mapDefine}.
+	 * @param ctx the parse tree
+	 */
+	void enterMapDefine(RuleParser.MapDefineContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuleParser#mapDefine}.
+	 * @param ctx the parse tree
+	 */
+	void exitMapDefine(RuleParser.MapDefineContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link RuleParser#mapEntry}.
+	 * @param ctx the parse tree
+	 */
+	void enterMapEntry(RuleParser.MapEntryContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuleParser#mapEntry}.
+	 * @param ctx the parse tree
+	 */
+	void exitMapEntry(RuleParser.MapEntryContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code ConstVariableExpression}
 	 * labeled alternative in {@link RuleParser#expression}.
 	 * @param ctx the parse tree
@@ -551,6 +571,18 @@ public interface RuleParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDefineNameExpression(RuleParser.DefineNameExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code MapExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterMapExpression(RuleParser.MapExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code MapExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitMapExpression(RuleParser.MapExpressionContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code PriorityExpression}
 	 * labeled alternative in {@link RuleParser#expression}.

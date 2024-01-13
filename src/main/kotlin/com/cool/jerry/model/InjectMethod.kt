@@ -115,6 +115,13 @@ data class InjectMethod(
                     }
                     return false
                 }
+
+                is ParseResult.ValueResult.MapValueResult -> {
+                    if (methodParameter == Map::class.java) {
+                        continue
+                    }
+                    return false
+                }
             }
         }
 

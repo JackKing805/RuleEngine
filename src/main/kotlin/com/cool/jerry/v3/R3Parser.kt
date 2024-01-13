@@ -47,6 +47,25 @@ class R3Parser {
         } ?: throw NotDefineMethodException(key)
     }
 
+
+    data class GrammarParser(
+        val scopeParams: MutableList<Param>,
+        val classes: MutableList<ParseResult.Define.ClassDefine>,
+        val functions: MutableList<ParseResult.Define.FunctionDefine>,
+    )
+
+    fun parse(r3Node: R3Node):GrammarParser{
+        val scopeParams = mutableListOf<Param>()
+        val classes = mutableListOf<ParseResult.Define.ClassDefine>()
+        val functions = mutableListOf<ParseResult.Define.FunctionDefine>()
+        parse(r3Node,scopeParams,classes,functions)
+        return GrammarParser(
+            scopeParams,
+            classes,
+            functions
+        )
+    }
+
     fun parse(
         node: R3Node,
         scopeParams: MutableList<Param>,
@@ -58,6 +77,9 @@ class R3Parser {
                 val result = parseExpression(node, scopeParams, classes, functions)
                 if (result is ParseResult.Define.Variable) {
                     if (node.parent() == null) {
+                        if (scopeParams.find { it.paramName()==result.name }!=null){
+                            throw RuntimeException("variable ${result.name} is already define")
+                        }
                         scopeParams.add(Param(result.name, result.value))
                     }
                 }
@@ -73,12 +95,21 @@ class R3Parser {
                 when (result) {
                     is ParseResult.Define.ClassDefine -> {
                         if (node.parent() == null) {
+                            if (classes.find { it.classStatement.className.text==result.classStatement.className.text }!=null){
+                                throw RuntimeException("class ${result.classStatement.className.text} is already define")
+                            }
                             classes.add(result)
                         }
                     }
 
                     is ParseResult.Define.FunctionDefine -> {
                         if (node.parent() == null) {
+                            if (functions.find {
+                                it.functionStatement.functionName.text==result.functionStatement.functionName.text &&
+                                        it.functionStatement.parameters.parameters.size == result.functionStatement.parameters.parameters.size
+                                }!=null){
+                                throw RuntimeException("function ${result.functionStatement.functionName.text} is already define")
+                            }
                             functions.add(result)
                         }
                     }
@@ -400,6 +431,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math assign operate left or right can't be rangeDefine")
                         }
                     }
@@ -426,6 +458,7 @@ class R3Parser {
                                 str.toString()
                             }
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math assign operate left or right can't be rangeDefine")
                         }
                     }
@@ -454,6 +487,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math assign operate left or right can't be rangeDefine")
                         }
                     }
@@ -542,6 +576,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -566,6 +601,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -586,6 +622,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -606,11 +643,13 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
                     is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport("Array +", node.source)
+                    is ParseResult.ValueResult.MapValueResult,
                     is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
 
@@ -643,6 +682,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -667,6 +707,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -699,6 +740,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -735,11 +777,13 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
                     is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport("Array /", node.source)
+                    is ParseResult.ValueResult.MapValueResult,
                     is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
             }
@@ -771,6 +815,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -802,6 +847,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -833,6 +879,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -869,6 +916,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -877,6 +925,7 @@ class R3Parser {
                         throw OpNotSupport("Array %", node.source)
                     }
 
+                    is ParseResult.ValueResult.MapValueResult,
                     is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
             }
@@ -908,6 +957,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -939,6 +989,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -978,6 +1029,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -1014,6 +1066,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -1022,6 +1075,7 @@ class R3Parser {
                         throw OpNotSupport("Array *", node.source)
                     }
 
+                    is ParseResult.ValueResult.MapValueResult,
                     is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
             }
@@ -1053,6 +1107,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -1081,6 +1136,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -1109,6 +1165,7 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
@@ -1137,11 +1194,13 @@ class R3Parser {
                                 node.source
                             )
 
+                            is ParseResult.ValueResult.MapValueResult,
                             is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
                     is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport("Array -", node.source)
+                    is ParseResult.ValueResult.MapValueResult,
                     is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
             }
@@ -1258,11 +1317,67 @@ class R3Parser {
             is R3Node.Expression.Define -> parseDefine(node, scopeParams, classes, functions)
             is R3Node.Expression.ArrayAccessExpression -> {
                 val array = parse(node.array, scopeParams, classes, functions)
-                if (array !is ParseResult.ValueResult.ArrayValueResult) {
-                    throw RuntimeException("${node.source} not a array define")
+                if (array !is ParseResult.ValueResult.ArrayValueResult && array !is ParseResult.ValueResult.MapValueResult && array !is ParseResult.ValueResult.AnyValueResult) {
+                    throw RuntimeException("${node.source} not a array or map define")
                 }
-                val index = parse(node.index, scopeParams, classes, functions) as ParseResult.ValueResult.IntValueResult
-                array.value[index.value.toInt()]
+                if (array is ParseResult.ValueResult.ArrayValueResult){
+                    val index = parse(node.index, scopeParams, classes, functions).toValueResult().toIntValueResultElseThrow()
+                    array.value[index.value.toInt()].toValueResult()
+                }else if (array is ParseResult.ValueResult.MapValueResult){
+                    val key = parse(node.index, scopeParams, classes, functions)
+                    val realKey = (scopeParams.find {
+                        if (key is ParseResult.Define.Variable){
+                            it.paramName()==key.name
+                        }else{
+                            false
+                        }
+                    }?:key).toValueResult().value
+                    var result:ParseResult = ParseResult.NoneResult
+                    for (entry in array.value.entries) {
+                        if (entry.key.value==realKey){
+                            result = entry.value
+                            break
+                        }
+                    }
+                    result
+                }else{
+                    val toValueResult = array.toValueResult()
+                    when (val value = toValueResult.value) {
+                        is Array<*> -> {
+                            val index = parse(node.index, scopeParams, classes, functions).toValueResult().toIntValueResultElseThrow()
+                            value[index.value.toInt()]?.toValueResult()?:ParseResult.NoneResult
+                        }
+
+                        is List<*> -> {
+                            val index = parse(node.index, scopeParams, classes, functions).toValueResult().toIntValueResultElseThrow()
+                            value[index.value.toInt()]?.toValueResult()?:ParseResult.NoneResult
+                        }
+
+                        is Map<*,*> -> {
+                            val key = parse(node.index, scopeParams, classes, functions)
+                            val realKey = (scopeParams.find {
+                                if (key is ParseResult.Define.Variable){
+                                    it.paramName()==key.name
+                                }else{
+                                    false
+                                }
+                            }?:key).toValueResult().value
+                            value[realKey]?.toValueResult()?:ParseResult.NoneResult
+                            var result:ParseResult = ParseResult.NoneResult
+                            for (entry in value.entries) {
+                                if (entry.key==realKey){
+                                    result = entry.value?.toValueResult()?:ParseResult.NoneResult
+                                    break
+                                }
+                            }
+                            result
+                        }
+
+                        else -> {
+                            throw RuntimeException("$value can't get properties ${node.index}")
+                        }
+                    }
+                }
             }
 
             is R3Node.Expression.OperateExpression.AssignOperateExpression -> {
@@ -1462,6 +1577,9 @@ class R3Parser {
                             parse(it, scopeParamsCopy, classes, functions)
                         }.forEach {
                             if (it is ParseResult.Define.Variable) {
+                                if(scopeParamsCopy.find {g-> g.paramName()==it.name }!=null){
+                                    throw RuntimeException("variable ${it.name} is already define")
+                                }
                                 Param(it.name, it).replaceScopeParams(scopeParamsCopy, true)
                             }
                         }
@@ -1564,9 +1682,12 @@ class R3Parser {
                         true
                     )
                 } else {
-                    val method = value::class.java.declaredMethods.find {
+                    val clazz = value::class.java
+                    val allMethod = (clazz.declaredMethods + clazz.methods).distinct()
+
+                    val method = allMethod.find {
                         it.name == methodDefine && it.parameterCount == arguments.size
-                    } ?: throw RefNotDefineMethodException(value.toString(), methodDefine)
+                    } ?: throw RefNotDefineMethodException(clazz.name, methodDefine)
                     val parameters = method.parameters
                     val argumentsConverter = arguments.mapIndexed { index,it->
                         val value = if (it.first is R3Node.Expression.Define.Identifier.ID) {
@@ -1593,14 +1714,16 @@ class R3Parser {
                     }?.parseResult
                         ?: throw RuntimeException("${node.objectExpression.source} not define properties:$propertiesName")
                 } else {
+                    val clazz = value::class.java
+                    val allFields = (clazz.fields + clazz.declaredFields).distinct()
                     (
-                            value::class.java.declaredFields.find {
+                            allFields.find {
                                 it.name == propertiesName
                             }?.let {
                                 it.isAccessible = true
                                 it
                             }?.get(value) ?: throw RefNotDefinePropertiesException(
-                                value::class.java.name,
+                                clazz.name,
                                 propertiesName
                             )
                             ).toValueResult()
@@ -1650,6 +1773,7 @@ class R3Parser {
                     is ParseResult.ValueResult.AnyValueResult,
                     is ParseResult.ValueResult.StringValueResult -> throw RuntimeException("signed Expr must be a Number:${node.source}")
                     is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("signed Expr must be a Number:${node.source}")
+                    is ParseResult.ValueResult.MapValueResult -> throw RuntimeException("signed Expr must be a Number:${node.source}")
                 }
             }
 
@@ -1706,6 +1830,19 @@ class R3Parser {
                     node.errorBody.toMutableList().execute(scopeParamsCopy,classes,functions,true,true,true)
                 }
                 result
+            }
+
+            is R3Node.Expression.MapExpression -> {
+                val map = mutableMapOf<ParseResult.ValueResult<*>,ParseResult.ValueResult<*>>()
+                for (entry in node.mapExpression) {
+                    val key = parse(entry.key,scopeParams,classes,functions).toValueResultElseThrow()
+                    val parse = parse(entry.value,scopeParams,classes,functions).toValueResultElseThrow()
+                    map[key] = parse
+
+                }
+                ParseResult.ValueResult.MapValueResult(
+                    map
+                )
             }
         }
     }
@@ -2089,6 +2226,7 @@ class R3Parser {
                             is ParseResult.ValueResult.IntValueResult -> indexValue.value = value as Long
                             is ParseResult.ValueResult.StringValueResult -> indexValue.value = value as String
                             is ParseResult.ValueResult.RangeValueResult -> indexValue.value = value as LongRange
+                            is ParseResult.ValueResult.MapValueResult -> indexValue.value = value as MutableMap<ParseResult.ValueResult<*>, ParseResult.ValueResult<*>>
                         }
 
 //                        scopeParams[index].parseResult = value.toValueResult()
