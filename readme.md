@@ -62,6 +62,16 @@
         log(item)
     }
     
+    loop{
+    
+    }
+    
+    watch{
+    
+    }error(e){
+        
+    }
+    
     a+=2
     def c = 1+1+(2-6)
     
@@ -70,4 +80,11 @@
     
     def time = currentTimestamp()
     log(time)
+    
+    def array2 = [1,2,3]
+    def map = { 1:1,"sd":"asd"}
+    
+    map["sd"]
+    array2[1]
+    
 ```

@@ -39,7 +39,7 @@ import kotlinx.coroutines.runBlocking
 //
 
 
-//todo task: 增加main方法入口,应用必须有main方法才会执行,增加多文件执行,增加map定义，map访问,fixbug:修复方法,变量和类可以重复定义的bug
+//todo fixbug:修复无法定义空map的bug
 fun main(args: Array<String>) {
     testParse()
 }
@@ -83,12 +83,9 @@ private fun testParse() {
     val pp2 = """
        def mainName = "mainName"     
      
-       def map = { mainName:"cc" }
-       def array = [1]
+       def map = { 1:"cc" }
        def main(){
-            println(@C.b["a"])
-            println(map[mainName])
-            println(array[0])
+            println(map[1])
        }
     """
 

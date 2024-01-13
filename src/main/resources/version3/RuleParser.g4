@@ -187,7 +187,7 @@ errorBody
 
 
 mapDefine
-    : '{' mapEntry* '}'
+    : '{' (mapEntry ( ',' mapEntry)*)? '}'
     ;
 
 mapEntry
