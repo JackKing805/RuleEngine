@@ -177,6 +177,11 @@ sealed class R3Node(
             val mapExpression: Map<Expression,Expression>
         ):Expression(source)
 
+        data class ReserveExpression(
+            override var source: String,
+            val expression: Expression
+        ):Expression(source)
+
         sealed class OperateExpression(source: String) : Expression(source) {
             sealed class BitOperateExpression(source: String, open val left: Expression, open val right: Expression) :
                 OperateExpression(source) {

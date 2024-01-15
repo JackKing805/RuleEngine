@@ -632,6 +632,16 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
         )
     }
 
+    override fun visitReserveExpression(ctx: RuleParser.ReserveExpressionContext): R3Node {
+        return R3Node.Expression.ReserveExpression(
+            ctx.text,
+            visit(ctx.reserveExp()) as R3Node.Expression
+        )
+    }
+
+    override fun visitReserveExp(ctx: RuleParser.ReserveExpContext): R3Node {
+        return visit(ctx.expression())
+    }
 
     override fun visitErrorNode(node: ErrorNode?): R3Node {
         throw RuntimeException("ErrorNode:${node?.text}")

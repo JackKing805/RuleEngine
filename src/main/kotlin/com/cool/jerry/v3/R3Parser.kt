@@ -4,6 +4,7 @@ import com.cool.jerry.bridge.*
 import com.cool.jerry.bridge.impl.*
 import com.cool.jerry.exception.*
 import com.cool.jerry.model.*
+import com.cool.jerry.model.Result
 import java.util.UUID
 import kotlin.experimental.and
 import kotlin.experimental.or
@@ -54,11 +55,11 @@ class R3Parser {
         val functions: MutableList<ParseResult.Define.FunctionDefine>,
     )
 
-    fun parse(r3Node: R3Node):GrammarParser{
+    fun parse(r3Node: R3Node): GrammarParser {
         val scopeParams = mutableListOf<Param>()
         val classes = mutableListOf<ParseResult.Define.ClassDefine>()
         val functions = mutableListOf<ParseResult.Define.FunctionDefine>()
-        parse(r3Node,scopeParams,classes,functions)
+        parse(r3Node, scopeParams, classes, functions)
         return GrammarParser(
             scopeParams,
             classes,
@@ -77,7 +78,7 @@ class R3Parser {
                 val result = parseExpression(node, scopeParams, classes, functions)
                 if (result is ParseResult.Define.Variable) {
                     if (node.parent() == null) {
-                        if (scopeParams.find { it.paramName()==result.name }!=null){
+                        if (scopeParams.find { it.paramName() == result.name } != null) {
                             throw RuntimeException("variable ${result.name} is already define")
                         }
                         scopeParams.add(Param(result.name, result.value))
@@ -95,7 +96,7 @@ class R3Parser {
                 when (result) {
                     is ParseResult.Define.ClassDefine -> {
                         if (node.parent() == null) {
-                            if (classes.find { it.classStatement.className.text==result.classStatement.className.text }!=null){
+                            if (classes.find { it.classStatement.className.text == result.classStatement.className.text } != null) {
                                 throw RuntimeException("class ${result.classStatement.className.text} is already define")
                             }
                             classes.add(result)
@@ -105,9 +106,9 @@ class R3Parser {
                     is ParseResult.Define.FunctionDefine -> {
                         if (node.parent() == null) {
                             if (functions.find {
-                                it.functionStatement.functionName.text==result.functionStatement.functionName.text &&
-                                        it.functionStatement.parameters.parameters.size == result.functionStatement.parameters.parameters.size
-                                }!=null){
+                                    it.functionStatement.functionName.text == result.functionStatement.functionName.text &&
+                                            it.functionStatement.parameters.parameters.size == result.functionStatement.parameters.parameters.size
+                                } != null) {
                                 throw RuntimeException("function ${result.functionStatement.functionName.text} is already define")
                             }
                             functions.add(result)
@@ -162,7 +163,12 @@ class R3Parser {
                     if (right.isLong()) {
                         throw RuntimeException("left move number must be int")
                     }
-                    (left.value shl right.value.toTargetTypeInstance(Int::class.java,scopeParams, classes, functions)).toValueResult()
+                    (left.value shl right.value.toTargetTypeInstance(
+                        Int::class.java,
+                        scopeParams,
+                        classes,
+                        functions
+                    )).toValueResult()
                 } else {
                     throw RuntimeException("<< operate only support int,long")
                 }
@@ -185,7 +191,12 @@ class R3Parser {
                     if (right.isLong()) {
                         throw RuntimeException("right move number must be int")
                     }
-                    (left.value shr right.value.toTargetTypeInstance(Int::class.java,scopeParams,classes, functions)).toValueResult()
+                    (left.value shr right.value.toTargetTypeInstance(
+                        Int::class.java,
+                        scopeParams,
+                        classes,
+                        functions
+                    )).toValueResult()
                 } else {
                     throw RuntimeException(">> operate only support int,long")
                 }
@@ -602,7 +613,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -623,7 +634,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -644,13 +655,13 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
                     is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport("Array +", node.source)
                     is ParseResult.ValueResult.MapValueResult,
-                    is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                    is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
 
             }
@@ -683,7 +694,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -708,7 +719,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -741,7 +752,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -784,7 +795,7 @@ class R3Parser {
 
                     is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport("Array /", node.source)
                     is ParseResult.ValueResult.MapValueResult,
-                    is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                    is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
             }
 
@@ -816,7 +827,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -848,7 +859,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -880,7 +891,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -917,7 +928,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -926,7 +937,7 @@ class R3Parser {
                     }
 
                     is ParseResult.ValueResult.MapValueResult,
-                    is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                    is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
             }
 
@@ -958,7 +969,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -990,7 +1001,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -1067,7 +1078,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -1076,7 +1087,7 @@ class R3Parser {
                     }
 
                     is ParseResult.ValueResult.MapValueResult,
-                    is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                    is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
             }
 
@@ -1108,7 +1119,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -1166,7 +1177,7 @@ class R3Parser {
                             )
 
                             is ParseResult.ValueResult.MapValueResult,
-                            is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                            is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                         }
                     }
 
@@ -1201,7 +1212,7 @@ class R3Parser {
 
                     is ParseResult.ValueResult.ArrayValueResult -> throw OpNotSupport("Array -", node.source)
                     is ParseResult.ValueResult.MapValueResult,
-                    is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("math operate left or right can't be rangeDefine")
+                    is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("math operate left or right can't be rangeDefine")
                 }
             }
         }.let { result ->
@@ -1320,53 +1331,56 @@ class R3Parser {
                 if (array !is ParseResult.ValueResult.ArrayValueResult && array !is ParseResult.ValueResult.MapValueResult && array !is ParseResult.ValueResult.AnyValueResult) {
                     throw RuntimeException("${node.source} not a array or map define")
                 }
-                if (array is ParseResult.ValueResult.ArrayValueResult){
-                    val index = parse(node.index, scopeParams, classes, functions).toValueResult().toIntValueResultElseThrow()
+                if (array is ParseResult.ValueResult.ArrayValueResult) {
+                    val index =
+                        parse(node.index, scopeParams, classes, functions).toValueResult().toIntValueResultElseThrow()
                     array.value[index.value.toInt()].toValueResult()
-                }else if (array is ParseResult.ValueResult.MapValueResult){
+                } else if (array is ParseResult.ValueResult.MapValueResult) {
                     val key = parse(node.index, scopeParams, classes, functions)
                     val realKey = (scopeParams.find {
-                        if (key is ParseResult.Define.Variable){
-                            it.paramName()==key.name
-                        }else{
+                        if (key is ParseResult.Define.Variable) {
+                            it.paramName() == key.name
+                        } else {
                             false
                         }
-                    }?:key).toValueResult().value
-                    var result:ParseResult = ParseResult.NoneResult
+                    } ?: key).toValueResult().value
+                    var result: ParseResult = ParseResult.NoneResult
                     for (entry in array.value.entries) {
-                        if (entry.key.value==realKey){
+                        if (entry.key.value == realKey) {
                             result = entry.value
                             break
                         }
                     }
                     result
-                }else{
+                } else {
                     val toValueResult = array.toValueResult()
                     when (val value = toValueResult.value) {
                         is Array<*> -> {
-                            val index = parse(node.index, scopeParams, classes, functions).toValueResult().toIntValueResultElseThrow()
-                            value[index.value.toInt()]?.toValueResult()?:ParseResult.NoneResult
+                            val index = parse(node.index, scopeParams, classes, functions).toValueResult()
+                                .toIntValueResultElseThrow()
+                            value[index.value.toInt()]?.toValueResult() ?: ParseResult.NoneResult
                         }
 
                         is List<*> -> {
-                            val index = parse(node.index, scopeParams, classes, functions).toValueResult().toIntValueResultElseThrow()
-                            value[index.value.toInt()]?.toValueResult()?:ParseResult.NoneResult
+                            val index = parse(node.index, scopeParams, classes, functions).toValueResult()
+                                .toIntValueResultElseThrow()
+                            value[index.value.toInt()]?.toValueResult() ?: ParseResult.NoneResult
                         }
 
-                        is Map<*,*> -> {
+                        is Map<*, *> -> {
                             val key = parse(node.index, scopeParams, classes, functions)
                             val realKey = (scopeParams.find {
-                                if (key is ParseResult.Define.Variable){
-                                    it.paramName()==key.name
-                                }else{
+                                if (key is ParseResult.Define.Variable) {
+                                    it.paramName() == key.name
+                                } else {
                                     false
                                 }
-                            }?:key).toValueResult().value
-                            value[realKey]?.toValueResult()?:ParseResult.NoneResult
-                            var result:ParseResult = ParseResult.NoneResult
+                            } ?: key).toValueResult().value
+                            value[realKey]?.toValueResult() ?: ParseResult.NoneResult
+                            var result: ParseResult = ParseResult.NoneResult
                             for (entry in value.entries) {
-                                if (entry.key==realKey){
-                                    result = entry.value?.toValueResult()?:ParseResult.NoneResult
+                                if (entry.key == realKey) {
+                                    result = entry.value?.toValueResult() ?: ParseResult.NoneResult
                                     break
                                 }
                             }
@@ -1466,11 +1480,12 @@ class R3Parser {
             is R3Node.Expression.LoopExpression -> {
                 var result: ParseResult = ParseResult.NoneResult
                 val scopeParamsCopy = mutableListOf(*scopeParams.toTypedArray())
-                if (node.condition==null){
-                    while (true){
+                if (node.condition == null) {
+                    while (true) {
                         val loopBody = node.loopBody.toMutableList()
                         result = loopBody.execute(scopeParamsCopy, classes, functions, true, true, true)
                         if (result is ParseResult.OperateResult.Break) {
+                            result = ParseResult.NoneResult
                             break
                         } else if (result is ParseResult.OperateResult.Continue) {
                             continue
@@ -1478,7 +1493,7 @@ class R3Parser {
                             break
                         }
                     }
-                }else{
+                } else {
                     val condition = parse(node.condition, scopeParams, classes, functions).toValueResultElseThrow()
                     if (condition is ParseResult.ValueResult.ArrayValueResult) {
                         for (valueResult in condition.value) {
@@ -1494,21 +1509,23 @@ class R3Parser {
                                 break
                             }
                         }
-                    }else if(condition is ParseResult.ValueResult.RangeValueResult){
+                    } else if (condition is ParseResult.ValueResult.RangeValueResult) {
                         for (valueResult in condition.value) {
                             val conditionProxy = Param(node.conditionProxy!!.text, valueResult.toValueResult())
                             conditionProxy.replaceScopeParams(scopeParamsCopy, true)
                             val loopBody = node.loopBody.toMutableList()
                             result = loopBody.execute(scopeParamsCopy, classes, functions, true, true, true)
                             if (result is ParseResult.OperateResult.Break) {
+                                result = ParseResult.NoneResult
                                 break
                             } else if (result is ParseResult.OperateResult.Continue) {
+                                result = ParseResult.NoneResult
                                 continue
                             } else if (result is ParseResult.OperateResult.Return) {
                                 break
                             }
                         }
-                    }else{
+                    } else {
                         throw RuntimeException("loop only support array and range:${node.source}")
                     }
                 }
@@ -1562,7 +1579,7 @@ class R3Parser {
                         var isOtherClassConstructor = false
 
                         for (constructorDefine in it.constructorDefine) {
-                            if (constructorDefine.functionStatement.functionStatement.parameters.parameters.size == node.arguments.size) {
+                            if (constructorDefine.functionStatement.functionStatement.parameters.parameters.size == node.arguments.size && it.classStatement.className.text == method) {
                                 isOtherClassConstructor = true
                                 break
                             }
@@ -1572,24 +1589,22 @@ class R3Parser {
                     }
 
                     if (findClassCreate != null) {
-                        //创建类变量
-                        findClassCreate.variableExpression.map {
-                            parse(it, scopeParamsCopy, classes, functions)
-                        }.forEach {
-                            if (it is ParseResult.Define.Variable) {
-                                if(scopeParamsCopy.find {g-> g.paramName()==it.name }!=null){
-                                    throw RuntimeException("variable ${it.name} is already define")
-                                }
-                                Param(it.name, it).replaceScopeParams(scopeParamsCopy, true)
-                            }
-                        }
-
-                        //调用类的创建
+                        //调用类的创建,两种方式中，创建变量的顺序不一致，所以要写两次
                         findClassCreate.constructorDefine.find {
-                            it.functionStatement.functionStatement.parameters.parameters.size == findClassCreate.classStatement.parameters.parameters.size &&
-                                    it.functionStatement.functionStatement.parameters.parameters.zip(findClassCreate.classStatement.parameters.parameters)
-                                        .all { (element1, element2) -> element1.text == element2.text }
+                            it.functionStatement.functionStatement.parameters.parameters.size == node.arguments.size
                         }?.let {
+                            //创建类变量
+                            findClassCreate.variableExpression.map {
+                                parse(it, scopeParamsCopy, classes, functions)
+                            }.forEach {
+                                if (it is ParseResult.Define.Variable) {
+                                    if (scopeParamsCopy.find { g -> g.paramName() == it.name } != null) {
+                                        throw RuntimeException("variable ${it.name} is already define")
+                                    }
+                                    Param(it.name, it).replaceScopeParams(scopeParamsCopy, true)
+                                }
+                            }
+
                             //调用匹配的构造方法
                             it.functionStatement.functionStatement.execute(
                                 node.arguments,
@@ -1600,17 +1615,6 @@ class R3Parser {
                             )
                         } ?: run {
                             //如果没有默认构造方法
-//                            val argumentsConvert = arguments.mapIndexed { index, parseResult ->
-//                                Param(findClassCreate.classStatement.parameters.parameters[index].text, parseResult.second)
-//                            }.toMutableList()
-//                            val argumentsConvert = arguments.mapIndexed { index, it ->
-//                                val value = if (it.first is R3Node.Expression.Define.Identifier.ID){
-//                                    scopeParams.find {a-> (it.first as R3Node.Expression.Define.Identifier.ID).text==a.paramName() }!!.parseResult
-//                                }else{
-//                                    it.second
-//                                }
-//                                Param(findClassCreate.classStatement.parameters.parameters[index].text, value)
-//                            }.toMutableList()
                             node.arguments.convertArguments(
                                 findClassCreate.classStatement.parameters.parameters.map { it.text },
                                 scopeParamsCopy,
@@ -1618,6 +1622,18 @@ class R3Parser {
                                 functions
                             ).replaceScopeParams(scopeParamsCopy, false)
 
+
+                            //创建类变量
+                            findClassCreate.variableExpression.map {
+                                parse(it, scopeParamsCopy, classes, functions)
+                            }.forEach {
+                                if (it is ParseResult.Define.Variable) {
+                                    if (scopeParamsCopy.find { g -> g.paramName() == it.name } != null) {
+                                        throw RuntimeException("variable ${it.name} is already define")
+                                    }
+                                    Param(it.name, it).replaceScopeParams(scopeParamsCopy, true)
+                                }
+                            }
                         }
 
                         //这里调用构造函数应该将该类创建并返回
@@ -1653,7 +1669,7 @@ class R3Parser {
                         val argumentParams = arguments.map {
                             it.second.value
                         }.mapIndexed { index, any ->
-                            any?.toTargetTypeInstance(parameters[index].type,scopeParamsCopy,classes,functions)
+                            any?.toTargetTypeInstance(parameters[index].type, scopeParamsCopy, classes, functions)
                         }
                         injectMethod.invokeMethod(*argumentParams.toTypedArray()).toValueResultElseNone()
                     }
@@ -1689,7 +1705,7 @@ class R3Parser {
                         it.name == methodDefine && it.parameterCount == arguments.size
                     } ?: throw RefNotDefineMethodException(clazz.name, methodDefine)
                     val parameters = method.parameters
-                    val argumentsConverter = arguments.mapIndexed { index,it->
+                    val argumentsConverter = arguments.mapIndexed { index, it ->
                         val value = if (it.first is R3Node.Expression.Define.Identifier.ID) {
                             scopeParams.find { a -> (it.first as R3Node.Expression.Define.Identifier.ID).text == a.paramName() }!!.parseResult
                         } else {
@@ -1697,7 +1713,12 @@ class R3Parser {
                         }
                         Param(parameters[index].name, value)
                     }.mapIndexed { index, it ->
-                        it.parseResult.toValueResultElseThrow().value?.toTargetTypeInstance(parameters[index].type,scopeParamsCopy,classes,functions)
+                        it.parseResult.toValueResultElseThrow().value?.toTargetTypeInstance(
+                            parameters[index].type,
+                            scopeParamsCopy,
+                            classes,
+                            functions
+                        )
                     }
                     return method.invoke(value, *argumentsConverter.toTypedArray()).toValueResultElseNone()
                 }
@@ -1741,7 +1762,7 @@ class R3Parser {
                     throw RuntimeException("error range define,range start more than end:${node.source}")
                 }
 
-                ParseResult.ValueResult.RangeValueResult(LongRange(start = start.value,end.value))
+                ParseResult.ValueResult.RangeValueResult(LongRange(start = start.value, end.value))
             }
 
             is R3Node.Expression.ReturnExpression -> {
@@ -1772,7 +1793,8 @@ class R3Parser {
                     is ParseResult.ValueResult.BooleanValueResult,
                     is ParseResult.ValueResult.AnyValueResult,
                     is ParseResult.ValueResult.StringValueResult -> throw RuntimeException("signed Expr must be a Number:${node.source}")
-                    is ParseResult.ValueResult.RangeValueResult ->  throw RuntimeException("signed Expr must be a Number:${node.source}")
+
+                    is ParseResult.ValueResult.RangeValueResult -> throw RuntimeException("signed Expr must be a Number:${node.source}")
                     is ParseResult.ValueResult.MapValueResult -> throw RuntimeException("signed Expr must be a Number:${node.source}")
                 }
             }
@@ -1823,25 +1845,35 @@ class R3Parser {
                 var result: ParseResult = ParseResult.NoneResult
                 result = try {
                     val scopeParamsCopy = mutableListOf(*scopeParams.toTypedArray())
-                    node.watchBody.toMutableList().execute(scopeParamsCopy,classes,functions,true,true,true)
-                }catch (e:Exception){
+                    node.watchBody.toMutableList().execute(scopeParamsCopy, classes, functions, true, true, true)
+                } catch (e: Exception) {
                     val scopeParamsCopy = mutableListOf(*scopeParams.toTypedArray())
-                    Param(node.errorName.text,(e.cause?:e).toValueResult()).replaceScopeParams(scopeParamsCopy,true)
-                    node.errorBody.toMutableList().execute(scopeParamsCopy,classes,functions,true,true,true)
+                    Param(node.errorName.text, (e.cause ?: e).toValueResult()).replaceScopeParams(scopeParamsCopy, true)
+                    node.errorBody.toMutableList().execute(scopeParamsCopy, classes, functions, true, true, true)
                 }
                 result
             }
 
             is R3Node.Expression.MapExpression -> {
-                val map = mutableMapOf<ParseResult.ValueResult<*>,ParseResult.ValueResult<*>>()
+                val map = mutableMapOf<ParseResult.ValueResult<*>, ParseResult.ValueResult<*>>()
                 for (entry in node.mapExpression) {
-                    val key = parse(entry.key,scopeParams,classes,functions).toValueResultElseThrow()
-                    val parse = parse(entry.value,scopeParams,classes,functions).toValueResultElseThrow()
+                    val key = parse(entry.key, scopeParams, classes, functions).toValueResultElseThrow()
+                    val parse = parse(entry.value, scopeParams, classes, functions).toValueResultElseThrow()
                     map[key] = parse
 
                 }
                 ParseResult.ValueResult.MapValueResult(
                     map
+                )
+            }
+
+            is R3Node.Expression.ReserveExpression -> {
+                val result = parse(node.expression, scopeParams, classes, functions).toValueResultElseThrow()
+                if (result !is ParseResult.ValueResult.BooleanValueResult) {
+                    throw RuntimeException("reserve only use at bool")
+                }
+                return ParseResult.ValueResult.BooleanValueResult(
+                    !result.value
                 )
             }
         }
@@ -1875,6 +1907,31 @@ class R3Parser {
                     parse(it, scopeParams, classes, functions) as ParseResult.Define.FunctionDefine
                 }
                 val variableExpression = classBody.filterIsInstance<R3Node.Expression.VariableExpression>()
+
+                constructor.groupBy {
+                    it.functionStatement.functionStatement.parameters.parameters.size
+                }.takeIf { it.size > 1 }?.let {
+                    throw RuntimeException("${node.className.text}'s constructor is Repetition")
+                }
+
+                function.groupBy {
+                    it.functionStatement.functionName
+                }.let { it ->
+                    it.forEach { (_, u) ->
+                        u.groupBy { g ->
+                            g.functionStatement.parameters.parameters.size
+                        }.takeIf { it.size > 1 }?.let { c ->
+                            throw RuntimeException("${node.className.text}'s function [${c[0]!![0].functionStatement.source}] is Repetition")
+                        }
+                    }
+                }
+
+                variableExpression.groupBy {
+                    it.variableName.text
+                }.flatMap { it.value }.takeIf { it.size > 1 }?.let {
+                    throw RuntimeException("${node.className.text}'s variable [${it[0].variableName.text}] is Repetition")
+                }
+
 
                 ParseResult.Define.ClassDefine(
                     node,
@@ -2122,6 +2179,9 @@ class R3Parser {
             return
         }
         val oname = oldName.name
+        if (oname == newName) {
+            return
+        }
         if (startIndex == size - 1) {
             return
         }
@@ -2186,8 +2246,11 @@ class R3Parser {
 //                } ?: scopeParams.add(Param(this.name, this))
                 name = UUID.randomUUID().toString() + "_" + name
                 scopeParams.add(Param(this.name, this.copy(name), name))
-            } ?: scopeParams.add(Param(this.name, this))
-            name
+                name
+            } ?: run {
+                scopeParams.add(Param(this.name, this))
+                null
+            }
         } else {
             null
         }
@@ -2215,18 +2278,33 @@ class R3Parser {
                             )
                         ) {
 //                        if (!value.javaClass.isAssignableFrom(p.parseResult.toValueResultElseThrow().value!!.javaClass)) {
-                            throw RuntimeException("setLeft,but value type is change:${id.source}")
+                            throw RuntimeException("setLeft,but value type[${value::class.java}] is change:${id.source}-[${p}]")
                         }
                         val indexValue = scopeParams[index].parseResult.toValueResultElseThrow()
                         when (indexValue) {
                             is ParseResult.ValueResult.AnyValueResult -> indexValue.value = value
-                            is ParseResult.ValueResult.ArrayValueResult -> indexValue.value = value as Array<ParseResult.ValueResult<*>>
-                            is ParseResult.ValueResult.BooleanValueResult -> indexValue.value = value as Boolean
-                            is ParseResult.ValueResult.FloatValueResult -> indexValue.value = value as Double
-                            is ParseResult.ValueResult.IntValueResult -> indexValue.value = value as Long
-                            is ParseResult.ValueResult.StringValueResult -> indexValue.value = value as String
+                            is ParseResult.ValueResult.ArrayValueResult -> indexValue.value =
+                                value as Array<ParseResult.ValueResult<*>>
+
+                            is ParseResult.ValueResult.BooleanValueResult -> {
+                                val indexParam = scopeParams[index]
+                                scopeParams[index] = Param(indexParam.getName(),ParseResult.ValueResult.BooleanValueResult(value =  value as Boolean),indexParam.getModifierName())
+                            }
+                            is ParseResult.ValueResult.FloatValueResult -> {
+                                val indexParam = scopeParams[index]
+                                scopeParams[index] = Param(indexParam.getName(),ParseResult.ValueResult.FloatValueResult(value =  value as Double),indexParam.getModifierName())
+                            }
+                            is ParseResult.ValueResult.IntValueResult -> {
+                                val indexParam = scopeParams[index]
+                                scopeParams[index] = Param(indexParam.getName(),ParseResult.ValueResult.IntValueResult(value =  value as Long),indexParam.getModifierName())
+                            }
+                            is ParseResult.ValueResult.StringValueResult -> {
+                                val indexParam = scopeParams[index]
+                                scopeParams[index] = Param(indexParam.getName(),ParseResult.ValueResult.StringValueResult(value =  value as String),indexParam.getModifierName())
+                            }
                             is ParseResult.ValueResult.RangeValueResult -> indexValue.value = value as LongRange
-                            is ParseResult.ValueResult.MapValueResult -> indexValue.value = value as MutableMap<ParseResult.ValueResult<*>, ParseResult.ValueResult<*>>
+                            is ParseResult.ValueResult.MapValueResult -> indexValue.value =
+                                value as MutableMap<ParseResult.ValueResult<*>, ParseResult.ValueResult<*>>
                         }
 
 //                        scopeParams[index].parseResult = value.toValueResult()
@@ -2267,7 +2345,6 @@ class R3Parser {
     }
 
 
-
     private fun <T> Any.toTargetTypeInstance(
         type: Class<T>,
         scopeParams: MutableList<Param>,
@@ -2291,54 +2368,88 @@ class R3Parser {
                         classes,
                         functions,
                         true
-                    )
+                    ).let {
+                        when(it){
+                            is ParseResult.ValueResult<*>-> it.value!!
+                            is ParseResult.OperateResult.Return-> it.value?.value?:Unit
+                            else->Unit
+                        }
+                    }
                 }
             }
 
             FunctionCallBridge1::class.java -> {
-                FunctionCallBridge1Impl {
+                FunctionCallBridge1Impl { it->
                     (this as ParseResult.Define.FunctionDefine).functionStatement.executeByBridge(
                         listOf(it),
                         scopeParams,
                         classes,
                         functions,
                         true
-                    )
+                    ).let {
+                        when(it){
+                            is ParseResult.ValueResult<*>-> it.value!!
+                            is ParseResult.OperateResult.Return-> it.value?.value?:Unit
+                            else->Unit
+                        }
+                    }
                 }
             }
+
             FunctionCallBridge2::class.java -> {
-                FunctionCallBridge2Impl { p1,p2->
+                FunctionCallBridge2Impl { p1, p2 ->
                     (this as ParseResult.Define.FunctionDefine).functionStatement.executeByBridge(
-                        listOf(p1,p2),
+                        listOf(p1, p2),
                         scopeParams,
                         classes,
                         functions,
                         true
-                    )
+                    ).let {
+                        when(it){
+                            is ParseResult.ValueResult<*>-> it.value!!
+                            is ParseResult.OperateResult.Return-> it.value?.value?:Unit
+                            else->Unit
+                        }
+                    }
                 }
             }
+
             FunctionCallBridge3::class.java -> {
-                FunctionCallBridge3Impl { p1,p2,p3->
+                FunctionCallBridge3Impl { p1, p2, p3 ->
                     (this as ParseResult.Define.FunctionDefine).functionStatement.executeByBridge(
-                        listOf(p1,p2,p3),
+                        listOf(p1, p2, p3),
                         scopeParams,
                         classes,
                         functions,
                         true
-                    )
+                    ).let {
+                        when(it){
+                            is ParseResult.ValueResult<*>-> it.value!!
+                            is ParseResult.OperateResult.Return-> it.value?.value?:Unit
+                            else->Unit
+                        }
+                    }
                 }
             }
+
             FunctionCallBridge4::class.java -> {
-                FunctionCallBridge4Impl { p1,p2,p3,p4->
+                FunctionCallBridge4Impl { p1, p2, p3, p4 ->
                     (this as ParseResult.Define.FunctionDefine).functionStatement.executeByBridge(
-                        listOf(p1,p2,p3,p4),
+                        listOf(p1, p2, p3, p4),
                         scopeParams,
                         classes,
                         functions,
                         true
-                    )
+                    ).let {
+                        when(it){
+                            is ParseResult.ValueResult<*>-> it.value!!
+                            is ParseResult.OperateResult.Return-> it.value?.value?:Unit
+                            else->Unit
+                        }
+                    }
                 }
             }
+
             Long::class.java -> {
                 try {
                     this as Long
@@ -2404,12 +2515,12 @@ class R3Parser {
             }
 
             else -> {
-                if (this is ParseResult.Define.FunctionDefine){
-                    this.functionStatement.execute(emptyList(),scopeParams,classes,functions,true)
+                if (this is ParseResult.Define.FunctionDefine) {
+                    this.functionStatement.execute(emptyList(), scopeParams, classes, functions, true)
                         .toValueResult()
                         .value
                         ?.toTargetTypeInstance(type, scopeParams, classes, functions)
-                }else{
+                } else {
                     this
                 }
             }

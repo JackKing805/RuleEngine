@@ -1,123 +1,63 @@
-import com.cool.jerry.bridge.FunctionCallBridge0
 import com.cool.jerry.bridge.FunctionCallBridge1
 import com.cool.jerry.bridge.FunctionCallBridge2
 import com.cool.jerry.model.InjectMethod
 import com.cool.jerry.v3.R3Engine
-import kotlinx.coroutines.runBlocking
 
-
-//版本2测试代码
-//fun main(args: Array<String>) {
-//    val program = """
-//       val c = @a.a.c
-//       log(c)
-//    """.trimIndent()
-//
-//    val visitor =  RtRuleEngine()
-//    visitor.setEnvironment("a",A())
-//    visitor.setEnvironment("c",C())
-//    visitor.execute(program)
-//}
-//
-//class C{
-//    val c = "ADWEE"
-//
-//    fun getCName() = "CName"
-//}
-//
-//class A{
-//    var a = C()
-//
-//    fun printC(c:C){
-//        println(c.getCName() + ",a:$a")
-//    }
-//
-//    fun isDebug():Boolean{
-//        return true
-//    }
-//}
-//
-
-
-//todo fixbug:修复无法定义空map的bug
+//todo task:增加取反操作符 fixbug:修复无法数学符号后面的表达式无法被完整识别的问题,修复循环中使用break会导致结果丢失的情况,String,Float,Long,Boolean 现在修改为值传递，其他的都是引用传递,修复调用其他方法会触发类的构造方法的bug
 fun main(args: Array<String>) {
     testParse()
 }
 
 private fun testParse() {
-    val program = """
-//        def class Context(){
-//            def a = true
-//        
-//            def isDebug(c){
-//                return c(a)
-//            }
-//        }
-//        
-//        def changeThread(IO,run){
-//            
-//        }
-//        
-//        def context = Context()
-//        println(toString(context))
-//        
-//        def result = if(context.isDebug((debug)->{
-//            return debug
-//        })){
-//            return "debugMode"
-//        }else{
-//            return "releaseMode"
-//        }
-//        //fgfg
-//        println(result)
-//        println(currentThread())
-//        @MAX_INT
-//        c()
-//        def c(){
-//            println(@MAX_INT)
-//            println(@MIN_INT)
-//        }
-//        1
-    """
-
     val pp2 = """
-       def mainName = "mainName"     
-     
-       def map = { 1:"cc" }
+       def da = DA(199)
+       
        def main(){
-            println(map[1])
+            def array = 0->5
+            def start = da.v
+            println(da.v)
+            println("asda")
+            loop array to index{
+                da.increase()
+                println(da.v)
+            }
+            println("start")
+            println(start)
+            call((a)->{
+                return "inner code"
+            })
+            return da.result()
        }
     """
 
     val pp3 = """
-       def mainName1 = "mainName1"
+       def class DA(value){
+            def v = 0
+            
+            DA(c){
+                v = c
+            }
+            
+            def increase(){
+                v++
+            }
+            
+            def result(){
+                return v
+            }
+       }
     """
     val visitor = R3Engine()
-    visitor.setEnvironment("C", C())
-    visitor.setEnvironmentMethod(
-        InjectMethod(
-            "call",
-            C::class.java.getMethod(
-                "callBack",
-                Int::class.java,
-                FunctionCallBridge2::class.java
-            ),
-            C()
-        )
-    )
+    visitor.setEnvironmentMethod(InjectMethod("call",A::class.java.getMethod("call",FunctionCallBridge1::class.java),A()))
     println(visitor.execute(pp2,pp3).result?.result)
 }
 
-open class A {
-    open val a = "A.a"
-}
 
-class C : A() {
-    val c = a
-    val b = mapOf("a" to 123123)
+class A{
 
-    fun callBack(c: Int, functionCallBridge0: FunctionCallBridge2): String {
-        functionCallBridge0.call(c, 2)
-        return "false"
+    fun call(functionCallBridge1: FunctionCallBridge1){
+        functionCallBridge1.call("aa").let {
+            println("fromCode:" + it)
+        }
     }
 }

@@ -226,6 +226,12 @@ public interface RuleParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitMapEntry(RuleParser.MapEntryContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link RuleParser#reserveExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReserveExp(RuleParser.ReserveExpContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code ConstVariableExpression}
 	 * labeled alternative in {@link RuleParser#expression}.
 	 * @param ctx the parse tree
@@ -344,6 +350,13 @@ public interface RuleParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitDefineNameExpression(RuleParser.DefineNameExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ReserveExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReserveExpression(RuleParser.ReserveExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code MapExpression}
 	 * labeled alternative in {@link RuleParser#expression}.

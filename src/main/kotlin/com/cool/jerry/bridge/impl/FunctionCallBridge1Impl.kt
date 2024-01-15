@@ -4,9 +4,9 @@ import com.cool.jerry.bridge.FunctionCallBridge1
 
 
 class FunctionCallBridge1Impl(
-    val onCall:(params1: Any)->Unit
+    val onCall:(params1: Any)->Any
 ):FunctionCallBridge1 {
-    override fun call(params1: Any) {
-        onCall(params1)
+    override fun call(params1: Any):Any {
+        return onCall(params1)
     }
 }

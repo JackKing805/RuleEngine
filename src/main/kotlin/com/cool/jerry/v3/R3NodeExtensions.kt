@@ -215,6 +215,10 @@ internal fun R3Node.haveIdEquals(name:String):Boolean{
             }
             return false
         }
+
+        is R3Node.Expression.ReserveExpression -> {
+            return this.expression.haveIdEquals(name)
+        }
     }
 }
 
@@ -638,8 +642,16 @@ internal fun R3Node.modifierOldIdToNewIdName(oldName:String,newName:String):R3No
         is R3Node.Expression.MapExpression -> {
             copy(
                 mapExpression = mapExpression.map {
-                    it.key.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression to it.value.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
+                    it.key.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression to it.value.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
                 }.toMap()
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
+
+        is R3Node.Expression.ReserveExpression -> {
+            copy(
+                expression = expression.modifierOldIdToNewIdName(oldName,newName) as R3Node.Expression
             ).apply {
                 setParent(this@modifierOldIdToNewIdName.parent())
             }
@@ -792,6 +804,10 @@ internal fun R3Node.modifierOldIdToNewIdName2(oldName:String,newName:String):R3N
                 entry.key.modifierOldIdToNewIdName2(oldName,newName)
                 entry.value.modifierOldIdToNewIdName2(oldName,newName)
             }
+        }
+
+        is R3Node.Expression.ReserveExpression -> {
+            expression.modifierOldIdToNewIdName2(oldName,newName)
         }
     }
     return this
@@ -957,6 +973,10 @@ internal fun R3Node.levelSet(parent:R3Node?){
                 entry.key.levelSet(parent)
                 entry.value.levelSet(parent)
             }
+        }
+
+        is R3Node.Expression.ReserveExpression -> {
+            expression.levelSet(parent)
         }
     }
 }

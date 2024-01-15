@@ -194,6 +194,9 @@ mapEntry
     : expression COLON expression
     ;
 
+reserveExp
+    : '!' expression
+    ;
 
 expression
     : methodCallExpression                                                      #CallMethodExpression
@@ -205,19 +208,19 @@ expression
     | expression '[' expression ']'                                             #ArrayAccessExpression
     | defineVariable                                                            #VariableExpression
     | defineConstVariable                                                       #ConstVariableExpression
-    | expression op=(BIT_LEFT | BIT_RIGHT | '&' | '|' | '^') expression         #BitOperationExpression
-    | expression op=('*'|'/'|'%') expression                                    #MulDivYuExpression
-    | expression op=('+'|'-') expression                                        #AddSubExpression
-    | expression '=' expression                                                 #AssignExpression
-    | expression op=ADD_ASSIGN expression                                       #AddAssignExpression
-    | expression op=SUB_ASSIGN expression                                       #SubAssignExpression
-    | expression op=MUL_ASSIGN expression                                       #MulAssignExpression
-    | expression op=DIV_ASSIGN expression                                       #DivAssignExpression
-    | expression op=AND_ASSIGN expression                                       #AndAssignExpression
-    | expression op=OR_ASSIGN expression                                        #OrAssignExpression
-    | expression op=XOR_ASSIGN expression                                       #XorAssignExpression
-    | expression op=MOD_ASSIGN expression                                       #ModAssignExpression
-    | expression op=('&&' | '||' | '==' |'!=' | '>=' | '<=' | '<' | '>') expression         #CompareExpression
+    | expression op=(BIT_LEFT | BIT_RIGHT | '&' | '|' | '^') (expression)         #BitOperationExpression
+    | expression op=('*'|'/'|'%') (expression)                                    #MulDivYuExpression
+    | expression op=('+'|'-') (expression)                                        #AddSubExpression
+    | expression '=' (expression)                                                 #AssignExpression
+    | expression op=ADD_ASSIGN (expression)                                       #AddAssignExpression
+    | expression op=SUB_ASSIGN (expression)                                       #SubAssignExpression
+    | expression op=MUL_ASSIGN (expression)                                       #MulAssignExpression
+    | expression op=DIV_ASSIGN (expression)                                       #DivAssignExpression
+    | expression op=AND_ASSIGN (expression)                                       #AndAssignExpression
+    | expression op=OR_ASSIGN (expression)                                        #OrAssignExpression
+    | expression op=XOR_ASSIGN (expression)                                       #XorAssignExpression
+    | expression op=MOD_ASSIGN (expression)                                       #ModAssignExpression
+    | expression op=('&&' | '||' | '==' |'!=' | '>=' | '<=' | '<' | '>') (expression)         #CompareExpression
     | ifExpression                                                              #DefineIfExpression
     | LOOP (expression TO ID)? '{' loopBody* '}'                                #LoopExpression
     | expression '->' expression                                                #DefineRangeExpression
@@ -227,6 +230,7 @@ expression
     | lamdaExpressionDefine                                                     #LamdaExpression
     | catchErrorDefine                                                          #CatchErrorExpression
     | mapDefine                                                                 #MapExpression
+    | reserveExp                                                                #ReserveExpression
     ;
 
 

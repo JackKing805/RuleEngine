@@ -368,6 +368,16 @@ public interface RuleParserListener extends ParseTreeListener {
 	 */
 	void exitMapEntry(RuleParser.MapEntryContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link RuleParser#reserveExp}.
+	 * @param ctx the parse tree
+	 */
+	void enterReserveExp(RuleParser.ReserveExpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuleParser#reserveExp}.
+	 * @param ctx the parse tree
+	 */
+	void exitReserveExp(RuleParser.ReserveExpContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code ConstVariableExpression}
 	 * labeled alternative in {@link RuleParser#expression}.
 	 * @param ctx the parse tree
@@ -571,6 +581,18 @@ public interface RuleParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDefineNameExpression(RuleParser.DefineNameExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ReserveExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterReserveExpression(RuleParser.ReserveExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ReserveExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitReserveExpression(RuleParser.ReserveExpressionContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code MapExpression}
 	 * labeled alternative in {@link RuleParser#expression}.
