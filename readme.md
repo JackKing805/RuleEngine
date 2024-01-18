@@ -87,4 +87,9 @@
     map["sd"]
     array2[1]
     
+    
+    //异步操作
+    async{
+        return "aa"
+    }
 ```

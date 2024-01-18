@@ -1,55 +1,40 @@
 import com.cool.jerry.bridge.FunctionCallBridge1
-import com.cool.jerry.bridge.FunctionCallBridge2
 import com.cool.jerry.model.InjectMethod
 import com.cool.jerry.v3.R3Engine
 
-//todo task:增加取反操作符 fixbug:修复无法数学符号后面的表达式无法被完整识别的问题,修复循环中使用break会导致结果丢失的情况,String,Float,Long,Boolean 现在修改为值传递，其他的都是引用传递,修复调用其他方法会触发类的构造方法的bug
+//todo task: 目前async里面的语句无法修改外部变量
 fun main(args: Array<String>) {
     testParse()
 }
-
 private fun testParse() {
     val pp2 = """
-       def da = DA(199)
-       
        def main(){
-            def array = 0->5
-            def start = da.v
-            println(da.v)
-            println("asda")
-            loop array to index{
-                da.increase()
-                println(da.v)
+            def isLoop = true
+            def save = isLoop
+            println("isLoop:"+isLoop)
+            async{
+                def c = true
+                def saveC = c
+                println("t c:"+c + ",saveC:"+saveC)
+                sleep(3000)
+                c = false
+                isLoop = false
+                println("isLoopT:"+isLoop)
+                println("t c:"+c + ",saveC:"+saveC)
+                return "a"
             }
-            println("start")
-            println(start)
-            call((a)->{
-                return "inner code"
-            })
-            return da.result()
+            
+            loop isLoop{
+            
+            }
+            println("isLoopEnd:"+isLoop)
+            println("save:"+save)
        }
-    """
-
-    val pp3 = """
-       def class DA(value){
-            def v = 0
-            
-            DA(c){
-                v = c
-            }
-            
-            def increase(){
-                v++
-            }
-            
-            def result(){
-                return v
-            }
-       }
+       
     """
     val visitor = R3Engine()
     visitor.setEnvironmentMethod(InjectMethod("call",A::class.java.getMethod("call",FunctionCallBridge1::class.java),A()))
-    println(visitor.execute(pp2,pp3).result?.result)
+    println(visitor.execute(pp2).result?.result)
 }
 
 

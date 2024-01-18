@@ -100,6 +100,7 @@ IF: 'if';
 ELSE: 'else';
 WATCH: 'watch';
 ERROR: 'error';
+ASYNC: 'async';
 
 //类型定义
 BOOLEAN: 'true' | 'false';

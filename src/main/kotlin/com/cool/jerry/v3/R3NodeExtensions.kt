@@ -219,6 +219,10 @@ internal fun R3Node.haveIdEquals(name:String):Boolean{
         is R3Node.Expression.ReserveExpression -> {
             return this.expression.haveIdEquals(name)
         }
+
+        is R3Node.Expression.AsyncExpression -> {
+            return this.asyncBody.any { it.haveIdEquals(name) }
+        }
     }
 }
 
@@ -656,6 +660,16 @@ internal fun R3Node.modifierOldIdToNewIdName(oldName:String,newName:String):R3No
                 setParent(this@modifierOldIdToNewIdName.parent())
             }
         }
+
+        is R3Node.Expression.AsyncExpression -> {
+            copy(
+                asyncBody = asyncBody.map {
+                    it.modifierOldIdToNewIdName2(oldName,newName) as R3Node.Expression
+                }
+            ).apply {
+                setParent(this@modifierOldIdToNewIdName.parent())
+            }
+        }
     }.let {
         return it
     }
@@ -808,6 +822,12 @@ internal fun R3Node.modifierOldIdToNewIdName2(oldName:String,newName:String):R3N
 
         is R3Node.Expression.ReserveExpression -> {
             expression.modifierOldIdToNewIdName2(oldName,newName)
+        }
+
+        is R3Node.Expression.AsyncExpression -> {
+            for (expression in asyncBody) {
+                expression.modifierOldIdToNewIdName2(oldName, newName)
+            }
         }
     }
     return this
@@ -978,5 +998,384 @@ internal fun R3Node.levelSet(parent:R3Node?){
         is R3Node.Expression.ReserveExpression -> {
             expression.levelSet(parent)
         }
+
+        is R3Node.Expression.AsyncExpression -> {
+            for (expression in asyncBody) {
+                expression.levelSet(parent)
+            }
+        }
     }
+}
+
+internal fun List<R3Node>.haveReturnExpression():Boolean{
+    return haveTypeExpression(R3Node.Expression.ReturnExpression::class.java)
+}
+
+internal fun R3Node.haveReturnExpression():Boolean{
+    return haveTypeExpression(R3Node.Expression.ReturnExpression::class.java)
+}
+
+internal fun List<R3Node>.haveTypeExpression(r3Class:Class<out R3Node>):Boolean{
+    for (r3Node in this) {
+        if (r3Node.haveTypeExpression(r3Class)){
+            return true
+        }
+    }
+    return false
+}
+internal fun R3Node.haveTypeExpression(r3Class:Class<out R3Node>):Boolean{
+     when(this){
+        is R3Node.Expression.ArrayAccessExpression -> {
+            if (r3Class==R3Node.Expression.ArrayAccessExpression::class.java){
+                return true
+            }
+            return array.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.OperateExpression.AssignOperateExpression -> {
+            if (r3Class==R3Node.Expression.OperateExpression.AssignOperateExpression::class.java){
+                return true
+            }
+            return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.AsyncExpression -> {
+            if (r3Class==R3Node.Expression.AsyncExpression::class.java){
+                return true
+            }
+            return this.asyncBody.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.BreakExpression -> {
+            if (r3Class==R3Node.Expression.BreakExpression::class.java){
+                return true
+            }
+            return false
+        }
+        is R3Node.Expression.CatchErrorExpression -> {
+            if (r3Class==R3Node.Expression.CatchErrorExpression::class.java){
+                return true
+            }
+            return this.errorName.haveTypeExpression(r3Class) || this.watchBody.haveTypeExpression(r3Class) || errorBody.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.ContinueExpression -> {
+            if (r3Class==R3Node.Expression.ContinueExpression::class.java){
+                return true
+            }
+            return false
+        }
+        is R3Node.Expression.Define.Identifier.ID -> {
+            if (r3Class==R3Node.Expression.Define.Identifier.ID::class.java){
+                return true
+            }
+            return false
+        }
+        is R3Node.Expression.Define.Identifier.ID_REF -> {
+            if (r3Class==R3Node.Expression.Define.Identifier.ID_REF::class.java){
+                return true
+            }
+            return false
+        }
+        is R3Node.Expression.Define.Params -> {
+            if (r3Class==R3Node.Expression.Define.Params::class.java){
+                return true
+            }
+            return parameters.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.IfExpression -> {
+            if (r3Class==R3Node.Expression.IfExpression::class.java){
+                return true
+            }
+            return this.condition.haveTypeExpression(r3Class) || this.thenBody.haveTypeExpression(r3Class) || elseBody.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.LambdaExpression -> {
+            if (r3Class==R3Node.Expression.LambdaExpression::class.java){
+                return true
+            }
+            return parameters.haveTypeExpression(r3Class) || this.functionBody.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.LoopExpression -> {
+            if (r3Class==R3Node.Expression.LoopExpression::class.java){
+                return true
+            }
+            return this.condition?.haveTypeExpression(r3Class)?:false || this.loopBody.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.MapExpression -> {
+            if (r3Class==R3Node.Expression.MapExpression::class.java){
+                return true
+            }
+            return mapExpression.any {
+                it.key.haveTypeExpression(r3Class) || it.value.haveTypeExpression(r3Class)
+            }
+        }
+        is R3Node.Expression.MethodCallExpression -> {
+            if (r3Class==R3Node.Expression.MethodCallExpression::class.java){
+                return true
+            }
+            return this.methodName.haveTypeExpression(r3Class) || this.arguments.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.ObjectMethodCallExpression -> {
+            if (r3Class==R3Node.Expression.ObjectPropertiesExpression::class.java){
+                return true
+            }
+            return this.objectExpression.haveTypeExpression(r3Class) || this.methodName.haveTypeExpression(r3Class) || this.arguments.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.ObjectPropertiesExpression -> {
+            if (r3Class==R3Node.Expression.ObjectPropertiesExpression::class.java){
+                return true
+            }
+            return this.objectExpression.haveTypeExpression(r3Class) || this.propertiesName.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.RangeExpression -> {
+            if (r3Class==R3Node.Expression.RangeExpression::class.java){
+                return true
+            }
+            return this.start.haveTypeExpression(r3Class) || this.end.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.ReserveExpression -> {
+            if (r3Class==R3Node.Expression.ReserveExpression::class.java){
+                return true
+            }
+            return this.expression.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.ReturnExpression -> {
+            if (r3Class==R3Node.Expression.ReturnExpression::class.java){
+                return true
+            }
+            return this.expression?.haveTypeExpression(r3Class)?:false
+        }
+        is R3Node.Expression.SignedExpression -> {
+            if (r3Class==R3Node.Expression.SignedExpression::class.java){
+                return true
+            }
+            return this.innerExpression.haveTypeExpression(r3Class)
+        }
+        is R3Node.Expression.TypeExpression.ArrayExpression -> {
+            if (r3Class==R3Node.Expression.TypeExpression.ArrayExpression::class.java){
+                return true
+            }
+            return this.value.any {
+                it.haveTypeExpression(r3Class)
+            }
+        }
+        is R3Node.Expression.TypeExpression.BooleanTypeExpression -> {
+            if (r3Class==R3Node.Expression.TypeExpression.BooleanTypeExpression::class.java){
+                return true
+            }
+            return false
+        }
+        is R3Node.Expression.TypeExpression.FloatNumberTypeExpression -> {
+            if (r3Class==R3Node.Expression.TypeExpression.FloatNumberTypeExpression::class.java){
+                return true
+            }
+            return false
+        }
+        is R3Node.Expression.TypeExpression.NumberTypeExpression -> {
+            if (r3Class==R3Node.Expression.TypeExpression.NumberTypeExpression::class.java){
+                return true
+            }
+            return false
+        }
+        is R3Node.Expression.TypeExpression.StringTypeExpression -> {
+            if (r3Class==R3Node.Expression.TypeExpression.StringTypeExpression::class.java){
+                return true
+            }
+            return false
+        }
+        is R3Node.Expression.VariableExpression -> {
+            if (r3Class==R3Node.Expression.VariableExpression::class.java){
+                return true
+            }
+            return this.variableValue.haveTypeExpression(r3Class) || this.variableName.haveTypeExpression(r3Class)
+        }
+        is R3Node.Program -> {
+            if (r3Class==R3Node.Program::class.java){
+                return true
+            }
+            return this.statements.haveTypeExpression(r3Class)
+        }
+        is R3Node.Statement.ClassStatement -> {
+            if (r3Class==R3Node.Statement.ClassStatement::class.java){
+                return true
+            }
+            return this.parameters.haveTypeExpression(r3Class) || this.className.haveTypeExpression(r3Class) || this.classBody.haveTypeExpression(r3Class)
+        }
+        is R3Node.Statement.ConstructorFunctionStatement -> {
+            if (r3Class==R3Node.Statement.ConstructorFunctionStatement::class.java){
+                return true
+            }
+            return this.functionStatement.haveTypeExpression(r3Class)
+        }
+        is R3Node.Statement.FunctionStatement -> {
+            if (r3Class==R3Node.Statement.FunctionStatement::class.java){
+                return true
+            }
+            return this.functionBody.haveTypeExpression(r3Class) || this.functionName.haveTypeExpression(r3Class) || this.parameters.haveTypeExpression(r3Class)
+        }
+         is R3Node.Expression.OperateExpression.BitOperateExpression.BitAndOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.BitOperateExpression.BitAndOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.BitOperateExpression.BitLeftOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.BitOperateExpression.BitLeftOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.BitOperateExpression.BitOrOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.BitOperateExpression.BitOrOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.BitOperateExpression.BitRightOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.BitOperateExpression.BitRightOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.BitOperateExpression.BitXorOperateExpression ->  {
+             if (r3Class==R3Node.Expression.OperateExpression.BitOperateExpression.BitXorOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.CompareOperateExpression.AndCompareOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.CompareOperateExpression.AndCompareOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.CompareOperateExpression.EqualCompareOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.CompareOperateExpression.EqualCompareOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.CompareOperateExpression.LessCompareOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.CompareOperateExpression.LessCompareOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.CompareOperateExpression.LessEqualCompareOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.CompareOperateExpression.LessEqualCompareOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.CompareOperateExpression.MoreCompareOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.CompareOperateExpression.MoreCompareOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.CompareOperateExpression.MoreEqualCompareOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.CompareOperateExpression.MoreEqualCompareOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.CompareOperateExpression.NotEqualCompareOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.CompareOperateExpression.NotEqualCompareOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.CompareOperateExpression.OrCompareOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.CompareOperateExpression.OrCompareOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathAssignOperateExpression.AddAssignOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathAssignOperateExpression.AddAssignOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathAssignOperateExpression.AndAssignOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathAssignOperateExpression.AndAssignOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathAssignOperateExpression.DivAssignOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathAssignOperateExpression.DivAssignOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathAssignOperateExpression.ModAssignOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathAssignOperateExpression.ModAssignOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathAssignOperateExpression.MulAssignOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathAssignOperateExpression.MulAssignOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathAssignOperateExpression.OrAssignOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathAssignOperateExpression.OrAssignOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathAssignOperateExpression.SubAssignOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathAssignOperateExpression.SubAssignOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathAssignOperateExpression.XorAssignOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathAssignOperateExpression.XorAssignOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathOperateExpression.AddOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathOperateExpression.AddOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathOperateExpression.DivOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathOperateExpression.DivOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathOperateExpression.ModOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathOperateExpression.ModOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathOperateExpression.MulOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathOperateExpression.MulOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.MathOperateExpression.SubOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.MathOperateExpression.SubOperateExpression::class.java){
+                 return true
+             }
+             return this.left.haveTypeExpression(r3Class) || this.right.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.NumberAutoOperateExpression.NumberAutoDecreaseOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.NumberAutoOperateExpression.NumberAutoDecreaseOperateExpression::class.java){
+                 return true
+             }
+             return this.who.haveTypeExpression(r3Class)
+         }
+         is R3Node.Expression.OperateExpression.NumberAutoOperateExpression.NumberAutoIncreaseOperateExpression -> {
+             if (r3Class==R3Node.Expression.OperateExpression.NumberAutoOperateExpression.NumberAutoIncreaseOperateExpression::class.java){
+                 return true
+             }
+             return this.who.haveTypeExpression(r3Class)
+         }
+     }
 }

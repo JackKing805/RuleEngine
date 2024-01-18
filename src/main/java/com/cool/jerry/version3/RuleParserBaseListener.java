@@ -245,6 +245,18 @@ public class RuleParserBaseListener implements RuleParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterAsyncBody(RuleParser.AsyncBodyContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAsyncBody(RuleParser.AsyncBodyContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterReturnEmptyExpression(RuleParser.ReturnEmptyExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -564,6 +576,18 @@ public class RuleParserBaseListener implements RuleParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitCompareExpression(RuleParser.CompareExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAsyncExpression(RuleParser.AsyncExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAsyncExpression(RuleParser.AsyncExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

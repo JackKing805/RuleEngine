@@ -66,7 +66,14 @@ sealed class ParseResult {
         data class ConstructorDefine(val functionStatement: R3Node.Statement.ConstructorFunctionStatement) : Define()
 
         //只有使用def才能用这个参数返回
-        data class Variable(val name: String, val value: ValueResult<*>, val isConst: Boolean) : Define()
+        data class Variable(val name: String, val value: ValueResult<*>, val isConst: Boolean,val defineScope:DefineScope) : Define(){
+            enum class DefineScope{
+                GLOBAL,
+                CLASS,
+                FUN,
+                INNER
+            }
+        }
     }
 }
 
@@ -210,3 +217,23 @@ internal fun Any.toValueResult(): ParseResult.ValueResult<*> {
     }
 }
 
+//internal fun ParseResult.toParam():Param{
+//    return when(this){
+//        is ParseResult.Define.ClassDefine -> Param(this.)
+//        is ParseResult.Define.ConstructorDefine -> TODO()
+//        is ParseResult.Define.FunctionDefine -> TODO()
+//        is ParseResult.Define.Variable -> TODO()
+//        ParseResult.NoneResult -> TODO()
+//        ParseResult.OperateResult.Break -> TODO()
+//        ParseResult.OperateResult.Continue -> TODO()
+//        is ParseResult.OperateResult.Return -> TODO()
+//        is ParseResult.ValueResult.AnyValueResult -> TODO()
+//        is ParseResult.ValueResult.ArrayValueResult -> TODO()
+//        is ParseResult.ValueResult.BooleanValueResult -> TODO()
+//        is ParseResult.ValueResult.FloatValueResult -> TODO()
+//        is ParseResult.ValueResult.IntValueResult -> TODO()
+//        is ParseResult.ValueResult.MapValueResult -> TODO()
+//        is ParseResult.ValueResult.RangeValueResult -> TODO()
+//        is ParseResult.ValueResult.StringValueResult -> TODO()
+//    }
+//}

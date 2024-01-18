@@ -204,6 +204,16 @@ public interface RuleParserListener extends ParseTreeListener {
 	 */
 	void exitLoopBody(RuleParser.LoopBodyContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link RuleParser#asyncBody}.
+	 * @param ctx the parse tree
+	 */
+	void enterAsyncBody(RuleParser.AsyncBodyContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RuleParser#asyncBody}.
+	 * @param ctx the parse tree
+	 */
+	void exitAsyncBody(RuleParser.AsyncBodyContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link RuleParser#returnEmptyExpression}.
 	 * @param ctx the parse tree
 	 */
@@ -497,6 +507,18 @@ public interface RuleParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitCompareExpression(RuleParser.CompareExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code AsyncExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterAsyncExpression(RuleParser.AsyncExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code AsyncExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitAsyncExpression(RuleParser.AsyncExpressionContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code AddSubExpression}
 	 * labeled alternative in {@link RuleParser#expression}.

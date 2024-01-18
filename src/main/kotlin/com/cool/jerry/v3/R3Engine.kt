@@ -12,6 +12,7 @@ import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import java.io.File
 import java.nio.charset.Charset
+import java.util.Collections
 
 class R3Engine {
     private val environments = mutableMapOf<String, Any>()
@@ -72,12 +73,6 @@ class R3Engine {
             )
         )
         r3Parser.setEnvironmentMethod(InjectMethod("currentThread", Embed::class.java.getMethod("currentThread")))
-        r3Parser.setEnvironmentMethod(
-            InjectMethod(
-                "thread",
-                Embed::class.java.getMethod("thread", FunctionCallBridge0::class.java)
-            )
-        )
         r3Parser.setEnvironmentMethod(InjectMethod("get", Embed::class.java.getMethod("get", String::class.java)))
         r3Parser.setEnvironmentMethod(InjectMethod("readLine", Embed::class.java.getMethod("readInput")))
 
@@ -156,10 +151,10 @@ class R3Engine {
                 levelSet(null)
             }
 
-            val result = r3Parser.parse(executeProgram, mutableListOf(), mutableListOf(), mutableListOf()).getResult()
+            val result = r3Parser.parse(executeProgram, Collections.synchronizedList(mutableListOf()), mutableListOf(), mutableListOf()).getResult()
             return ExecuteResult(executeProgram, Result(findMain, result))
         } else {
-            r3Parser.parse(visit, mutableListOf(), mutableListOf(), mutableListOf())
+            r3Parser.parse(visit, Collections.synchronizedList(mutableListOf()), mutableListOf(), mutableListOf())
             return ExecuteResult(visit, null)
         }
     }

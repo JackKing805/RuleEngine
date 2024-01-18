@@ -182,6 +182,11 @@ sealed class R3Node(
             val expression: Expression
         ):Expression(source)
 
+        data class AsyncExpression(
+            override var source: String,
+            val asyncBody: List<Expression>
+        ):Expression(source)
+
         sealed class OperateExpression(source: String) : Expression(source) {
             sealed class BitOperateExpression(source: String, open val left: Expression, open val right: Expression) :
                 OperateExpression(source) {

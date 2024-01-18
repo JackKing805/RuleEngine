@@ -111,13 +111,6 @@ object Embed {
     }
 
     @JvmStatic
-    fun thread(functionCallBridge0: FunctionCallBridge0){
-        kotlin.concurrent.thread {
-            functionCallBridge0.call()
-        }
-    }
-
-    @JvmStatic
     fun readInput():String?{
         return readlnOrNull()
     }

@@ -468,12 +468,30 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
 
 
         val condition = visit(ctx.expression()) as R3Node.Expression
-        val conditionProxy = ctx.ID().toIdExpression() as R3Node.Expression.Define.Identifier.ID
+        val conditionProxy = if (ctx.ID()!=null){
+            ctx.ID().toIdExpression() as R3Node.Expression.Define.Identifier.ID
+        }else{
+            null
+        }
         return R3Node.Expression.LoopExpression(
             ctx.text,
             condition,
             conditionProxy,
             loopBody
+        )
+    }
+
+    override fun visitAsyncBody(ctx: RuleParser.AsyncBodyContext): R3Node {
+        return visit(ctx.expression()?:ctx.returnEmptyExpression()?:ctx.returnExpression())
+    }
+
+    override fun visitAsyncExpression(ctx: RuleParser.AsyncExpressionContext): R3Node {
+        val asyncBody = ctx.asyncBody()?.mapNotNull {
+            visit(it) as R3Node.Expression
+        } ?: emptyList()
+        return R3Node.Expression.AsyncExpression(
+            ctx.text,
+            asyncBody
         )
     }
 

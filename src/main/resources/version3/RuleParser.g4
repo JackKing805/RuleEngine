@@ -115,6 +115,13 @@ loopBody
     | returnEmptyExpression
     ;
 
+
+asyncBody
+    : expression
+    | returnExpression
+    | returnEmptyExpression
+    ;
+
 returnEmptyExpression
     : 'return'
     ;
@@ -222,7 +229,7 @@ expression
     | expression op=MOD_ASSIGN (expression)                                       #ModAssignExpression
     | expression op=('&&' | '||' | '==' |'!=' | '>=' | '<=' | '<' | '>') (expression)         #CompareExpression
     | ifExpression                                                              #DefineIfExpression
-    | LOOP (expression TO ID)? '{' loopBody* '}'                                #LoopExpression
+    | LOOP (expression (TO ID)?)? '{' loopBody* '}'                                #LoopExpression
     | expression '->' expression                                                #DefineRangeExpression
     | numberAutoIncreaseReduceExpression                                        #NumberAutoExpression
     | expression '.' ID                                                         #ObjectPropertiesExpression
@@ -231,6 +238,7 @@ expression
     | catchErrorDefine                                                          #CatchErrorExpression
     | mapDefine                                                                 #MapExpression
     | reserveExp                                                                #ReserveExpression
+    | ASYNC '{' asyncBody* '}'                                                  #AsyncExpression
     ;
 
 

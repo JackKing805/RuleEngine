@@ -128,6 +128,12 @@ public interface RuleParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLoopBody(RuleParser.LoopBodyContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link RuleParser#asyncBody}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAsyncBody(RuleParser.AsyncBodyContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link RuleParser#returnEmptyExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -301,6 +307,13 @@ public interface RuleParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitCompareExpression(RuleParser.CompareExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code AsyncExpression}
+	 * labeled alternative in {@link RuleParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAsyncExpression(RuleParser.AsyncExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code AddSubExpression}
 	 * labeled alternative in {@link RuleParser#expression}.
