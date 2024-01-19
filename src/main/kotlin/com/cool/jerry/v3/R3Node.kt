@@ -141,7 +141,7 @@ sealed class R3Node(
 
         data class MethodCallExpression(
             override var source: String,
-            val methodName: Define.Identifier.ID,
+            val methodName: Expression,
             val arguments: List<Expression>
         ) : Expression(source)
 

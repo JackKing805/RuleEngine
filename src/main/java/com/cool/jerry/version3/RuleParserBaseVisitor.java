@@ -186,13 +186,6 @@ public class RuleParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitMethodCallExpression(RuleParser.MethodCallExpressionContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
 	@Override public T visitParenthesizedExpression(RuleParser.ParenthesizedExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}

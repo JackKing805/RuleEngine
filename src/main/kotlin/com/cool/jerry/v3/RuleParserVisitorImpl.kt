@@ -552,31 +552,31 @@ class RuleParserVisitorImpl : RuleParserBaseVisitor<R3Node>() {
     }
 
     override fun visitObjectMethodCallExpression(ctx: RuleParser.ObjectMethodCallExpressionContext): R3Node {
-        val objectObject = visit(ctx.expression()) as R3Node.Expression
-        val methodCall = visit(ctx.methodCallExpression()) as R3Node.Expression.MethodCallExpression
+        val objectObject = visit(ctx.expression()[0]) as R3Node.Expression
+        val methodName = ctx.ID().toIdExpression() as R3Node.Expression.Define.Identifier.ID
+        val arguments =  ctx.expression().drop(1).mapNotNull {
+            visit(it) as R3Node.Expression
+        }
         return R3Node.Expression.ObjectMethodCallExpression(
             ctx.text,
             objectObject,
-            methodCall.methodName,
-            methodCall.arguments
+            methodName,
+            arguments
         )
     }
 
     override fun visitCallMethodExpression(ctx: RuleParser.CallMethodExpressionContext): R3Node {
-        return visit(ctx.methodCallExpression())
-    }
-
-    override fun visitMethodCallExpression(ctx: RuleParser.MethodCallExpressionContext): R3Node {
-        val methodName = ctx.ID().toIdExpression() as R3Node.Expression.Define.Identifier.ID
-        val arguments = ctx.expression()?.mapNotNull {
+        val methodName = visit(ctx.expression()[0]) as R3Node.Expression
+        val arguments =  ctx.expression().drop(1).mapNotNull {
             visit(it) as R3Node.Expression
-        }?: emptyList()
+        }
         return R3Node.Expression.MethodCallExpression(
             ctx.text,
             methodName,
             arguments
         )
     }
+
 
     override fun visitConstVariableExpression(ctx: RuleParser.ConstVariableExpressionContext): R3Node {
         return visit(ctx.defineConstVariable())

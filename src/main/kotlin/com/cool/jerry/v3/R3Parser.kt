@@ -550,7 +550,7 @@ class R3Parser {
                 }
             }
         }.let {
-            reAssignLeftValue((node.left as R3Node.Expression.Define.Identifier), it, scopeParams)
+            reAssignLeftValue((node.left as R3Node.Expression.Define.Identifier), it.toValueResult(), scopeParams)
         }
         return ParseResult.NoneResult
     }
@@ -1248,11 +1248,11 @@ class R3Parser {
         }
         when (node) {
             is R3Node.Expression.OperateExpression.NumberAutoOperateExpression.NumberAutoDecreaseOperateExpression -> {
-                reAssignLeftValue(node.who, whoValue.value - 1, scopeParams)
+                reAssignLeftValue(node.who, (whoValue.value - 1).toValueResult(), scopeParams)
             }
 
             is R3Node.Expression.OperateExpression.NumberAutoOperateExpression.NumberAutoIncreaseOperateExpression -> {
-                reAssignLeftValue(node.who, whoValue.value + 1, scopeParams)
+                reAssignLeftValue(node.who, (whoValue.value + 1).toValueResult(), scopeParams)
             }
         }
         return ParseResult.NoneResult
@@ -1325,9 +1325,16 @@ class R3Parser {
         return when (node) {
             is R3Node.Expression.Define -> parseDefine(node, scopeParams, classes, functions)
             is R3Node.Expression.ArrayAccessExpression -> {
-                val array = parse(node.array, scopeParams, classes, functions)
-                if (array !is ParseResult.ValueResult.ArrayValueResult && array !is ParseResult.ValueResult.MapValueResult && array !is ParseResult.ValueResult.AnyValueResult) {
-                    throw RuntimeException("${node.source} not a array or map define")
+                var array = parse(node.array, scopeParams, classes, functions)
+                if (array is ParseResult.Define.Variable){
+                    if (array.value !is ParseResult.ValueResult.ArrayValueResult && array.value !is ParseResult.ValueResult.MapValueResult && array.value !is ParseResult.ValueResult.AnyValueResult) {
+                        throw RuntimeException("${node.source} not a array or map define")
+                    }
+                    array = array.value
+                }else{
+                    if (array !is ParseResult.ValueResult.ArrayValueResult && array !is ParseResult.ValueResult.MapValueResult && array !is ParseResult.ValueResult.AnyValueResult) {
+                        throw RuntimeException("${node.source} not a array or map define")
+                    }
                 }
                 if (array is ParseResult.ValueResult.ArrayValueResult) {
                     val index =
@@ -1393,10 +1400,10 @@ class R3Parser {
             }
 
             is R3Node.Expression.OperateExpression.AssignOperateExpression -> {
-                val value = parse(node.right, scopeParams, classes, functions).toValueResultElseThrow()
+                val value = parse(node.right, scopeParams, classes, functions)
                 when (node.left) {
                     is R3Node.Expression.Define.Identifier -> {
-                        reAssignLeftValue(node.left, value.value!!, scopeParams)
+                        reAssignLeftValue(node.left, value.toValueResultElseThrow(), scopeParams)
                     }
 
                     is R3Node.Expression.ObjectPropertiesExpression -> {
@@ -1404,16 +1411,34 @@ class R3Parser {
                         if (objectHolder is ParseResult.ValueResult.AnyValueResult && objectHolder.value is ClassEnvironmentDefine) {
                             reAssignLeftValue(
                                 node.left.propertiesName,
-                                value.value!!,
+                                value.toValueResultElseThrow(),
                                 (objectHolder.value as ClassEnvironmentDefine).scopeParams
                             )
-                        } else {
-                            objectHolder::class.java.declaredFields.find {
+                        } else if(objectHolder is ParseResult.ValueResult.AnyValueResult){
+                            objectHolder.value::class.java.declaredFields.find {
                                 it.name == node.left.propertiesName.text
                             }?.let {
                                 it.isAccessible = true
-                                it.set(objectHolder, value.value!!)
+                                when (value) {
+                                    is ParseResult.ValueResult<*> -> {
+                                        it.set(objectHolder.value, value.value)
+                                    }
+                                    is ParseResult.Define.Variable -> {
+                                        it.set(objectHolder.value, value.value.value)
+                                    }
+                                    else -> {
+                                        throw RuntimeException("$value's type not equals to properties's type")
+                                    }
+                                }
                             }
+                        } else {
+//                            objectHolder::class.java.declaredFields.find {
+//                                it.name == node.left.propertiesName.text
+//                            }?.let {
+//                                it.isAccessible = true
+//                                it.set(objectHolder, value.value!!)
+//                            }
+                            throw RuntimeException("$objectHolder not support modifier properties's value")
                         }
                     }
 
@@ -1513,7 +1538,6 @@ class R3Parser {
                             if (node.conditionProxy != null) {
                                 throw RuntimeException("loop bool,don;t need conditionProxy:${node.source}")
                             }
-                            //todo 无法获取改变后的值
                             while ((parse(node.condition, scopeParams, classes, functions).toValueResultElseThrow() as ParseResult.ValueResult.BooleanValueResult).value) {
                                 val loopBody = node.loopBody.toMutableList()
                                 result = loopBody.execute(scopeParams, classes, functions, true, true, true, false)
@@ -1537,137 +1561,151 @@ class R3Parser {
 
             is R3Node.Expression.MethodCallExpression -> {
                 transformScope(scopeParams) {scopeParams->
-                    val method = node.methodName.text
+                    val nodeMethodName = node.methodName
+                    if (nodeMethodName is R3Node.Expression.Define.Identifier.ID){
+                        val method = nodeMethodName.text
 
+                        //internal function
+                        val functionStatement = functions.find { it.functionStatement.functionName.text == method }
+                        val lambdaExpression = scopeParams.filter {
+                            val re = it.parseResult
+                            (re is ParseResult.Define.Variable &&
+                                    re.value is ParseResult.ValueResult.AnyValueResult &&
+                                    re.value.value is ParseResult.Define.FunctionDefine &&
+                                    (re.value.value as ParseResult.Define.FunctionDefine).functionStatement.parameters.parameters.size == node.arguments.size)
 
-                    //internal function
-                    val functionStatement = functions.find { it.functionStatement.functionName.text == method }
-                    val lambdaExpression = scopeParams.filter {
-                        val re = it.parseResult
-                        (re is ParseResult.Define.Variable &&
-                                re.value is ParseResult.ValueResult.AnyValueResult &&
-                                re.value.value is ParseResult.Define.FunctionDefine &&
-                                (re.value.value as ParseResult.Define.FunctionDefine).functionStatement.parameters.parameters.size == node.arguments.size)
+                                    ||
 
-                                ||
-
-                                (re is ParseResult.ValueResult.AnyValueResult &&
-                                        re.value is ParseResult.Define.FunctionDefine &&
-                                        (re.value as ParseResult.Define.FunctionDefine).functionStatement.parameters.parameters.size == node.arguments.size)
-                    }.find {
-                        method == it.paramName()
-                    }
-                    if (functionStatement != null) {
-                        functionStatement.functionStatement.execute(
-                            node.arguments,
-                            scopeParams,
-                            classes,
-                            functions,
-                            true
-                        )
-                    } else if (lambdaExpression != null) {
-                        (lambdaExpression.parseResult.toValueResult().value as ParseResult.Define.FunctionDefine).functionStatement.execute(
-                            node.arguments,
-                            scopeParams,
-                            classes,
-                            functions,
-                            true
-                        )
-                    } else {
-                        //判断是否是调用了类的创建方法
-                        val findClassCreate = classes.find {
-                            val isClassInitConstructor = it.classStatement.className.text == method &&
-                                    it.classStatement.parameters.parameters.size == node.arguments.size
-
-                            var isOtherClassConstructor = false
-
-                            for (constructorDefine in it.constructorDefine) {
-                                if (constructorDefine.functionStatement.functionStatement.parameters.parameters.size == node.arguments.size && it.classStatement.className.text == method) {
-                                    isOtherClassConstructor = true
-                                    break
-                                }
-                            }
-
-                            isClassInitConstructor || isOtherClassConstructor
+                                    (re is ParseResult.ValueResult.AnyValueResult &&
+                                            re.value is ParseResult.Define.FunctionDefine &&
+                                            (re.value as ParseResult.Define.FunctionDefine).functionStatement.parameters.parameters.size == node.arguments.size)
+                        }.find {
+                            method == it.paramName()
                         }
-
-                        if (findClassCreate != null) {
-                            //调用类的创建,两种方式中，创建变量的顺序不一致，所以要写两次
-                            findClassCreate.constructorDefine.find {
-                                it.functionStatement.functionStatement.parameters.parameters.size == node.arguments.size
-                            }?.let {
-                                //创建类变量
-                                findClassCreate.variableExpression.map {
-                                    parse(it, scopeParams, classes, functions)
-                                }.forEach {
-                                    if (it is ParseResult.Define.Variable) {
-                                        if (scopeParams.find { g -> g.paramName() == it.name } != null) {
-                                            throw RuntimeException("variable ${it.name} is already define")
-                                        }
-                                        Param(it.name, it).replaceScopeParams(scopeParams, true)
-                                    }
-                                }
-
-                                //调用匹配的构造方法
-                                it.functionStatement.functionStatement.execute(
-                                    node.arguments,
-                                    scopeParams,
-                                    classes,
-                                    functions,
-                                    false
-                                )
-                            } ?: run {
-                                //如果没有默认构造方法
-                                node.arguments.convertArguments(
-                                    findClassCreate.classStatement.parameters.parameters.map { it.text },
-                                    scopeParams,
-                                    classes,
-                                    functions
-                                ).replaceScopeParams(scopeParams, false)
-
-
-                                //创建类变量
-                                findClassCreate.variableExpression.map {
-                                    parse(it, scopeParams, classes, functions)
-                                }.forEach {
-                                    if (it is ParseResult.Define.Variable) {
-                                        if (scopeParams.find { g -> g.paramName() == it.name } != null) {
-                                            throw RuntimeException("variable ${it.name} is already define")
-                                        }
-                                        Param(it.name, it).replaceScopeParams(scopeParams, true)
-                                    }
-                                }
-                            }
-
-                            //这里调用构造函数应该将该类创建并返回
-                            ParseResult.ValueResult.AnyValueResult(
-                                ClassEnvironmentDefine(
-                                    findClassCreate,
-                                    mutableListOf(*scopeParams.toTypedArray()),
-                                )
+                        if (functionStatement != null) {
+                            functionStatement.functionStatement.execute(
+                                node.arguments,
+                                scopeParams,
+                                classes,
+                                functions,
+                                true
+                            )
+                        } else if (lambdaExpression != null) {
+                            (lambdaExpression.parseResult.toValueResult().value as ParseResult.Define.FunctionDefine).functionStatement.execute(
+                                node.arguments,
+                                scopeParams,
+                                classes,
+                                functions,
+                                true
                             )
                         } else {
-                            //调用系统函数
-                            val arguments = node.arguments.map {
-                                parse(
-                                    it,
-                                    scopeParams,
-                                    classes,
-                                    functions
-                                ).toValueResultElseThrow("$method params execute result must be a value:${it.source}")
-                            }.mapIndexed { index, valueResult ->
-                                node.arguments[index] to valueResult
+                            //判断是否是调用了类的创建方法
+                            val findClassCreate = classes.find {
+                                val isClassInitConstructor = it.classStatement.className.text == method &&
+                                        it.classStatement.parameters.parameters.size == node.arguments.size
+
+                                var isOtherClassConstructor = false
+
+                                for (constructorDefine in it.constructorDefine) {
+                                    if (constructorDefine.functionStatement.functionStatement.parameters.parameters.size == node.arguments.size && it.classStatement.className.text == method) {
+                                        isOtherClassConstructor = true
+                                        break
+                                    }
+                                }
+
+                                isClassInitConstructor || isOtherClassConstructor
                             }
 
+                            if (findClassCreate != null) {
+                                //调用类的创建,两种方式中，创建变量的顺序不一致，所以要写两次
+                                findClassCreate.constructorDefine.find {
+                                    it.functionStatement.functionStatement.parameters.parameters.size == node.arguments.size
+                                }?.let {
+                                    //创建类变量
+                                    findClassCreate.variableExpression.map {
+                                        parse(it, scopeParams, classes, functions)
+                                    }.forEach {
+                                        if (it is ParseResult.Define.Variable) {
+                                            if (scopeParams.find { g -> g.paramName() == it.name } != null) {
+                                                throw RuntimeException("variable ${it.name} is already define")
+                                            }
+                                            Param(it.name, it).replaceScopeParams(scopeParams, true)
+                                        }
+                                    }
 
-                            val injectMethod = getEnvironmentMethod(method, arguments.map { it.second })
-                            val parameters = injectMethod.method.parameters
-                            val argumentParams = arguments.map {
-                                it.second.value
-                            }.mapIndexed { index, any ->
-                                any?.toTargetTypeInstance(parameters[index].type, scopeParams, classes, functions)
+                                    //调用匹配的构造方法
+                                    it.functionStatement.functionStatement.execute(
+                                        node.arguments,
+                                        scopeParams,
+                                        classes,
+                                        functions,
+                                        false
+                                    )
+                                } ?: run {
+                                    //如果没有默认构造方法
+                                    node.arguments.convertArguments(
+                                        findClassCreate.classStatement.parameters.parameters.map { it.text },
+                                        scopeParams,
+                                        classes,
+                                        functions
+                                    ).replaceScopeParams(scopeParams, false)
+
+
+                                    //创建类变量
+                                    findClassCreate.variableExpression.map {
+                                        parse(it, scopeParams, classes, functions)
+                                    }.forEach {
+                                        if (it is ParseResult.Define.Variable) {
+                                            if (scopeParams.find { g -> g.paramName() == it.name } != null) {
+                                                throw RuntimeException("variable ${it.name} is already define")
+                                            }
+                                            Param(it.name, it).replaceScopeParams(scopeParams, true)
+                                        }
+                                    }
+                                }
+
+                                //这里调用构造函数应该将该类创建并返回
+                                ParseResult.ValueResult.AnyValueResult(
+                                    ClassEnvironmentDefine(
+                                        findClassCreate,
+                                        mutableListOf(*scopeParams.toTypedArray()),
+                                    )
+                                )
+                            } else {
+                                //调用系统函数
+                                val arguments = node.arguments.map {
+                                    parse(
+                                        it,
+                                        scopeParams,
+                                        classes,
+                                        functions
+                                    ).toValueResultElseThrow("$method params execute result must be a value:${it.source}")
+                                }.mapIndexed { index, valueResult ->
+                                    node.arguments[index] to valueResult
+                                }
+
+                                val injectMethod = getEnvironmentMethod(method, arguments.map { it.second })
+                                val parameters = injectMethod.method.parameters
+                                val argumentParams = arguments.map {
+                                    it.second.value
+                                }.mapIndexed { index, any ->
+                                    any?.toTargetTypeInstance(parameters[index].type, scopeParams, classes, functions)
+                                }
+                                injectMethod.invokeMethod(*argumentParams.toTypedArray()).toValueResultElseNone()
                             }
-                            injectMethod.invokeMethod(*argumentParams.toTypedArray()).toValueResultElseNone()
+                        }
+                    }else{
+                        val nodeMethodParser = parse(nodeMethodName,scopeParams,classes, functions)
+                        if (nodeMethodParser is ParseResult.Define.FunctionDefine){
+                            nodeMethodParser.functionStatement.execute(
+                                node.arguments,
+                                scopeParams,
+                                classes,
+                                functions,
+                                true
+                            )
+                        }else{
+                            throw RuntimeException("only support lambdaExpression ")
                         }
                     }
                 }
@@ -1691,7 +1729,7 @@ class R3Parser {
                         } ?: throw RuntimeException("$objectDefine don't define $methodDefine function")
                         functionStatement.functionStatement.execute(
                             node.arguments, value.scopeParams, mutableListOf(),
-                            mutableListOf(),
+                            value.classDefine.functionDefine.toMutableList(),
                             true
                         )
                     } else {
@@ -1892,61 +1930,61 @@ class R3Parser {
                     var result:ParseResult = ParseResult.NoneResult
                     val needWait = asyncBody.haveReturnExpression()
                     var isComplete = false
-                    val copyScopeParams = ProxyMutableList(scopeParams){old,new->
+                    val copyScopeParams = ProxyMutableList(scopeParams){index,old,new->
                         val oldParseResult = old.parseResult
-                        val newParseResult = new.parseResult
+                        val newParseResult = new.parseResult.toValueResult()
                         if (oldParseResult::class.java!=newParseResult::class.java){
                             throw RuntimeException("${old.paramName()}'s type not equals ${new.paramName()}'s type")
                         }
                         when (oldParseResult) {
                             is ParseResult.Define.Variable -> {
                                 when (oldParseResult.value) {
-                                    is ParseResult.ValueResult.AnyValueResult -> oldParseResult.value.value = newParseResult.toValueResult().value!!
-                                    is ParseResult.ValueResult.ArrayValueResult -> oldParseResult.value.value = newParseResult.toValueResult().value as Array<ParseResult.ValueResult<*>>
+                                    is ParseResult.ValueResult.AnyValueResult -> oldParseResult.value = (newParseResult as ParseResult.ValueResult.AnyValueResult).copy()
+                                    is ParseResult.ValueResult.ArrayValueResult ->oldParseResult.value = (newParseResult as ParseResult.ValueResult.ArrayValueResult).copy()
 
                                     is ParseResult.ValueResult.BooleanValueResult -> {
-                                        oldParseResult.value.value = newParseResult.toValueResult().value as Boolean
+                                        oldParseResult.value = (newParseResult as ParseResult.ValueResult.BooleanValueResult).copy()
                                     }
 
                                     is ParseResult.ValueResult.FloatValueResult -> {
-                                        oldParseResult.value.value = newParseResult.toValueResult().value as Double
+                                        oldParseResult.value = (newParseResult as ParseResult.ValueResult.FloatValueResult).copy()
                                     }
 
                                     is ParseResult.ValueResult.IntValueResult -> {
-                                        oldParseResult.value.value = newParseResult.toValueResult().value as Long
+                                        oldParseResult.value = (newParseResult as ParseResult.ValueResult.IntValueResult).copy()
                                     }
 
                                     is ParseResult.ValueResult.StringValueResult -> {
-                                        oldParseResult.value.value = newParseResult.toValueResult().value as String
+                                        oldParseResult.value = (newParseResult as ParseResult.ValueResult.StringValueResult).copy()
                                     }
 
-                                    is ParseResult.ValueResult.MapValueResult -> oldParseResult.value.value = newParseResult.toValueResult().value!! as MutableMap<ParseResult.ValueResult<*>, ParseResult.ValueResult<*>>
+                                    is ParseResult.ValueResult.MapValueResult -> oldParseResult.value = (newParseResult as ParseResult.ValueResult.MapValueResult).copy()
 
-                                    is ParseResult.ValueResult.RangeValueResult -> oldParseResult.value.value = newParseResult.toValueResult().value!! as LongRange
+                                    is ParseResult.ValueResult.RangeValueResult -> oldParseResult.value = (newParseResult as ParseResult.ValueResult.RangeValueResult).copy()
                                 }
                             }
 
-                            is ParseResult.ValueResult.AnyValueResult -> oldParseResult.value = newParseResult.toValueResult().value!!
-                            is ParseResult.ValueResult.ArrayValueResult -> oldParseResult.value = newParseResult.toValueResult().value!! as Array<ParseResult.ValueResult<*>>
+                            is ParseResult.ValueResult.AnyValueResult -> oldParseResult.value = (newParseResult as ParseResult.ValueResult.AnyValueResult).copy().value
+                            is ParseResult.ValueResult.ArrayValueResult -> oldParseResult.value = (newParseResult as ParseResult.ValueResult.ArrayValueResult).copy().value
 
                             is ParseResult.ValueResult.BooleanValueResult -> {
-                                oldParseResult.value = newParseResult.toValueResult().value!! as Boolean
+                                oldParseResult.value = (newParseResult as ParseResult.ValueResult.BooleanValueResult).copy().value
                             }
 
                             is ParseResult.ValueResult.FloatValueResult -> {
-                                oldParseResult.value = newParseResult.toValueResult().value!! as Double
+                                oldParseResult.value = (newParseResult as ParseResult.ValueResult.FloatValueResult).copy().value
                             }
 
                             is ParseResult.ValueResult.IntValueResult -> {
-                                oldParseResult.value = newParseResult.toValueResult().value!! as Long
+                                oldParseResult.value = (newParseResult as ParseResult.ValueResult.IntValueResult).copy().value
                             }
 
                             is ParseResult.ValueResult.StringValueResult -> {
-                                oldParseResult.value = newParseResult.toValueResult().value!! as String
+                                oldParseResult.value = (newParseResult as ParseResult.ValueResult.StringValueResult).copy().value
                             }
 
-                            is ParseResult.ValueResult.RangeValueResult -> oldParseResult.value = newParseResult.toValueResult().value!! as LongRange
-                            is ParseResult.ValueResult.MapValueResult -> oldParseResult.value = newParseResult.toValueResult().value!! as MutableMap<ParseResult.ValueResult<*>, ParseResult.ValueResult<*>>
+                            is ParseResult.ValueResult.RangeValueResult -> oldParseResult.value = (newParseResult as ParseResult.ValueResult.RangeValueResult).copy().value
+                            is ParseResult.ValueResult.MapValueResult -> oldParseResult.value = (newParseResult as ParseResult.ValueResult.MapValueResult).copy().value
 
                             else -> throw RuntimeException("$oldParseResult not support modifier")
                         }
@@ -2025,8 +2063,12 @@ class R3Parser {
 
                 variableExpression.groupBy {
                     it.variableName.text
-                }.flatMap { it.value }.takeIf { it.size > 1 }?.let {
-                    throw RuntimeException("${node.className.text}'s variable [${it[0].variableName.text}] is Repetition")
+                }.let {
+                    for (entry in it) {
+                        if (entry.value.size>1){
+                            throw RuntimeException("${node.className.text}'s variable [${entry.value[0].variableName.text}] is Repetition")
+                        }
+                    }
                 }
 
 
@@ -2124,7 +2166,15 @@ class R3Parser {
             arguments.convertArguments(parameters.parameters.map { it.text }, scopeParams, classes, functions)
                 .replaceScopeParams(scopeParams, REPLACE)
             val functionBody = functionBody.toMutableList()
-            functionBody.execute(scopeParams, classes, functions, true, false, true, true)
+            var result = functionBody.execute(scopeParams, classes, functions, true, false, true, true)
+            if (result is ParseResult.OperateResult.Break) {
+                throw RuntimeException("not support break")
+            } else if (result is ParseResult.OperateResult.Continue) {
+                throw RuntimeException("not support continue")
+            } else if (result is ParseResult.OperateResult.Return) {
+                result = result.value?:ParseResult.NoneResult
+            }
+            result
         }
     }
 
@@ -2147,7 +2197,15 @@ class R3Parser {
             arguments.convertArgumentsByBridge(parameters.parameters.map { it.text }, scopeParams)
                 .replaceScopeParams(scopeParams, REPLACE)
             val functionBody = functionBody.toMutableList()
-            functionBody.execute(scopeParams, classes, functions, true, false, true, false)
+            var result = functionBody.execute(scopeParams, classes, functions, true, false, true, false)
+            if (result is ParseResult.OperateResult.Break) {
+                throw RuntimeException("not support break")
+            } else if (result is ParseResult.OperateResult.Continue) {
+                throw RuntimeException("not support continue")
+            } else if (result is ParseResult.OperateResult.Return) {
+                result = result.value?:ParseResult.NoneResult
+            }
+            result
         }
     }
 
@@ -2272,7 +2330,7 @@ class R3Parser {
      */
     private fun reAssignLeftValue(
         id: R3Node.Expression.Define.Identifier,
-        value: Any,
+        value: ParseResult.ValueResult<*>,
         scopeParams: MutableList<Param>
     ) {
         when (id) {
@@ -2284,127 +2342,63 @@ class R3Parser {
 
                     scopeParams.indexOf(p).takeIf { index -> index != -1 }?.let { index ->
                         if (!isSameClass(
-                                value::class.java,
+                                value.value!!::class.java,
                                 p.parseResult.toValueResultElseThrow().value!!::class.java
                             )
                         ) {
-                            throw RuntimeException("setLeft,but value type[${value::class.java}] is change:${id.source}-[${p}]")
+                            throw RuntimeException("you want assign a issues value type to anther value type: sourceType:${p.parseResult.toValueResult().value!!::class.java},newValueType:${value.value!!::class.java}")
                         }
                         val indexValue = scopeParams[index].parseResult
                         when (indexValue) {
                             is ParseResult.Define.Variable -> {
                                 when (indexValue.value) {
-                                    is ParseResult.ValueResult.AnyValueResult -> indexValue.value.value = value
-                                    is ParseResult.ValueResult.ArrayValueResult -> indexValue.value.value = value as Array<ParseResult.ValueResult<*>>
+                                    is ParseResult.ValueResult.AnyValueResult -> indexValue.value = (value as ParseResult.ValueResult.AnyValueResult).copy()
+                                    is ParseResult.ValueResult.ArrayValueResult -> indexValue.value = (value as ParseResult.ValueResult.ArrayValueResult).copy()
 
                                     is ParseResult.ValueResult.BooleanValueResult -> {
-                                        val newValue = value as Boolean
-//                                        indexValue.value.value = newValue.toBooleanStrict()
-
-                                        val indexParam = scopeParams[index]
-                                        scopeParams[index] = Param(
-                                            indexParam.getName(),
-                                            indexValue.copy(value = ParseResult.ValueResult.BooleanValueResult(newValue)),
-                                            indexParam.getModifierName()
-                                        )
+                                        indexValue.value = (value as ParseResult.ValueResult.BooleanValueResult).copy()
                                     }
 
                                     is ParseResult.ValueResult.FloatValueResult -> {
-                                        val newValue = value as Double
-//                                        indexValue.value.value = newValue
-
-                                        val indexParam = scopeParams[index]
-                                        scopeParams[index] = Param(
-                                            indexParam.getName(),
-                                            indexValue.copy(value = ParseResult.ValueResult.FloatValueResult(newValue)),
-                                            indexParam.getModifierName()
-                                        )
+                                        indexValue.value = (value as ParseResult.ValueResult.FloatValueResult).copy()
                                     }
 
                                     is ParseResult.ValueResult.IntValueResult -> {
-                                        val newValue = value as Long
-//                                        indexValue.value.value = newValue
-
-                                        val indexParam = scopeParams[index]
-                                        scopeParams[index] = Param(
-                                            indexParam.getName(),
-                                            indexValue.copy(value = ParseResult.ValueResult.IntValueResult(newValue)),
-                                            indexParam.getModifierName()
-                                        )
+                                        indexValue.value = (value as ParseResult.ValueResult.IntValueResult).copy()
                                     }
 
                                     is ParseResult.ValueResult.StringValueResult -> {
-                                        val newValue = value as String
-//                                        indexValue.value.value = newValue
-
-                                        val indexParam = scopeParams[index]
-                                        scopeParams[index] = Param(
-                                            indexParam.getName(),
-                                            indexValue.copy(value = ParseResult.ValueResult.StringValueResult(newValue)),
-                                            indexParam.getModifierName()
-                                        )
+                                        indexValue.value = (value as ParseResult.ValueResult.StringValueResult).copy()
                                     }
 
-                                    is ParseResult.ValueResult.MapValueResult -> indexValue.value.value = value as MutableMap<ParseResult.ValueResult<*>, ParseResult.ValueResult<*>>
+                                    is ParseResult.ValueResult.MapValueResult -> indexValue.value = (value as ParseResult.ValueResult.MapValueResult).copy()
 
-                                    is ParseResult.ValueResult.RangeValueResult -> indexValue.value.value =
-                                        value as LongRange
+                                    is ParseResult.ValueResult.RangeValueResult -> indexValue.value = (value as ParseResult.ValueResult.RangeValueResult).copy()
+
                                 }
                             }
 
-                            is ParseResult.ValueResult.AnyValueResult -> indexValue.value = value
-                            is ParseResult.ValueResult.ArrayValueResult -> indexValue.value = value as Array<ParseResult.ValueResult<*>>
+                            is ParseResult.ValueResult.AnyValueResult -> scopeParams[index] = scopeParams[index].copy(parseResult = (value as ParseResult.ValueResult.AnyValueResult).copy())
+                            is ParseResult.ValueResult.ArrayValueResult ->  scopeParams[index] = scopeParams[index].copy(parseResult = (value as ParseResult.ValueResult.ArrayValueResult).copy())
 
                             is ParseResult.ValueResult.BooleanValueResult -> {
-                                val newValue = value as Boolean
-//                                indexValue.value = newValue
-
-                                val indexParam = scopeParams[index]
-                                scopeParams[index] = Param(
-                                    indexParam.getName(),
-                                    ParseResult.ValueResult.BooleanValueResult(value = newValue),
-                                    indexParam.getModifierName()
-                                )
+                                scopeParams[index] = scopeParams[index].copy(parseResult = (value as ParseResult.ValueResult.BooleanValueResult).copy())
                             }
 
                             is ParseResult.ValueResult.FloatValueResult -> {
-                                val newValue = value as Double
-//                                indexValue.value = newValue
-
-                                val indexParam = scopeParams[index]
-                                scopeParams[index] = Param(
-                                    indexParam.getName(),
-                                    ParseResult.ValueResult.FloatValueResult(value = newValue),
-                                    indexParam.getModifierName()
-                                )
+                                scopeParams[index] = scopeParams[index].copy(parseResult = (value as ParseResult.ValueResult.FloatValueResult).copy())
                             }
 
                             is ParseResult.ValueResult.IntValueResult -> {
-                                val newValue = value as Long
-//                                indexValue.value = newValue
-
-                                val indexParam = scopeParams[index]
-                                scopeParams[index] = Param(
-                                    indexParam.getName(),
-                                    ParseResult.ValueResult.IntValueResult(value = newValue),
-                                    indexParam.getModifierName()
-                                )
+                                scopeParams[index] = scopeParams[index].copy(parseResult = (value as ParseResult.ValueResult.IntValueResult).copy())
                             }
 
                             is ParseResult.ValueResult.StringValueResult -> {
-                                val newValue = value as String
-//                                indexValue.value = newValue
-
-                                val indexParam = scopeParams[index]
-                                scopeParams[index] = Param(
-                                    indexParam.getName(),
-                                    ParseResult.ValueResult.StringValueResult(value = newValue),
-                                    indexParam.getModifierName()
-                                )
+                                scopeParams[index] = scopeParams[index].copy(parseResult = (value as ParseResult.ValueResult.StringValueResult).copy())
                             }
 
-                            is ParseResult.ValueResult.RangeValueResult -> indexValue.value = value as LongRange
-                            is ParseResult.ValueResult.MapValueResult -> indexValue.value = value as MutableMap<ParseResult.ValueResult<*>, ParseResult.ValueResult<*>>
+                            is ParseResult.ValueResult.RangeValueResult -> scopeParams[index] = scopeParams[index].copy(parseResult = (value as ParseResult.ValueResult.RangeValueResult).copy())
+                            is ParseResult.ValueResult.MapValueResult ->  scopeParams[index] = scopeParams[index].copy(parseResult = (value as ParseResult.ValueResult.MapValueResult).copy())
 
                             else -> throw RuntimeException("$indexValue not support modifier")
                         }

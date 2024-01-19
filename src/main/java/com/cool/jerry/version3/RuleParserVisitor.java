@@ -158,12 +158,6 @@ public interface RuleParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitContinueExpression(RuleParser.ContinueExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link RuleParser#methodCallExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitMethodCallExpression(RuleParser.MethodCallExpressionContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link RuleParser#parenthesizedExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

@@ -142,9 +142,7 @@ continueExpression
 //    : expression '->' expression
 //    ;
 
-methodCallExpression
-    : ID '(' (expression (',' expression)*)? ')'
-    ;
+
 
 
 parenthesizedExpression
@@ -205,10 +203,14 @@ reserveExp
     : '!' expression
     ;
 
+//methodCallExpression
+//    : expression '(' (expression (',' expression)*)? ')'
+//    ;
+
 expression
-    : methodCallExpression                                                      #CallMethodExpression
+    : expression '(' (expression (',' expression)*)? ')'                        #CallMethodExpression
     | parenthesizedExpression                                                   #PriorityExpression
-    | expression '.' methodCallExpression                                       #ObjectMethodCallExpression
+    | expression '.' ID '(' (expression (',' expression)*)? ')'         #ObjectMethodCallExpression
     | defineExpression                                                          #DefineNameExpression
     | typeExpression                                                            #DefineTypeExpression
     | array                                                                     #ArrayExpression

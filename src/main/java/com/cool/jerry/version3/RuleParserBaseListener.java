@@ -305,18 +305,6 @@ public class RuleParserBaseListener implements RuleParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterMethodCallExpression(RuleParser.MethodCallExpressionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitMethodCallExpression(RuleParser.MethodCallExpressionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterParenthesizedExpression(RuleParser.ParenthesizedExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}

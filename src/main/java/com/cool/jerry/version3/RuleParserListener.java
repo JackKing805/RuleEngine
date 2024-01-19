@@ -254,16 +254,6 @@ public interface RuleParserListener extends ParseTreeListener {
 	 */
 	void exitContinueExpression(RuleParser.ContinueExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link RuleParser#methodCallExpression}.
-	 * @param ctx the parse tree
-	 */
-	void enterMethodCallExpression(RuleParser.MethodCallExpressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RuleParser#methodCallExpression}.
-	 * @param ctx the parse tree
-	 */
-	void exitMethodCallExpression(RuleParser.MethodCallExpressionContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link RuleParser#parenthesizedExpression}.
 	 * @param ctx the parse tree
 	 */

@@ -66,7 +66,7 @@ sealed class ParseResult {
         data class ConstructorDefine(val functionStatement: R3Node.Statement.ConstructorFunctionStatement) : Define()
 
         //只有使用def才能用这个参数返回
-        data class Variable(val name: String, val value: ValueResult<*>, val isConst: Boolean,val defineScope:DefineScope) : Define(){
+        data class Variable(val name: String, var value: ValueResult<*>, val isConst: Boolean, val defineScope:DefineScope) : Define(){
             enum class DefineScope{
                 GLOBAL,
                 CLASS,

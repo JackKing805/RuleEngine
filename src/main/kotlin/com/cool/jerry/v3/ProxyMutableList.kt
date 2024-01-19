@@ -2,7 +2,7 @@ package com.cool.jerry.v3
 
 class ProxyMutableList<E>(
     originList: MutableList<E>,
-    private val set:(old:E,new:E)->Unit
+    private val set:(index:Int,old:E,new:E)->Unit
 ) : MutableList<E> {
     private val proxyList = mutableListOf<E>()
     private val mOriginList = mutableListOf<E>()
@@ -73,7 +73,7 @@ class ProxyMutableList<E>(
     override fun set(index: Int, element: E): E {
         try {
             mOriginList[index]?.let{
-                set(it,element)
+                set(index,it,element)
             }
         }catch (_:Exception){}
         return proxyList.set(index, element)
