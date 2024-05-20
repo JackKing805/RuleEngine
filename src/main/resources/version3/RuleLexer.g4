@@ -167,10 +167,11 @@ ID_REF: '@' Name; //引用环境变量的定义
 fragment Name: [a-zA-Z_][a-zA-Z0-9_]*;
 
 
-NEWLINE : '\r'? '\n' ;
+NEWLINE : ('\r' '\n'? | '\n') -> skip;
+
+Whitespace: [ \t]+ -> skip;
 
 //定义注释
-WS: [ \t\r\n\u000C]+ -> skip;
 
 COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
 
