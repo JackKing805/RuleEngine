@@ -180,6 +180,7 @@ watchBody
     | breakExpression
     | returnExpression
     | returnEmptyExpression
+    | NEWLINE
     ;
 
 errorBody
@@ -188,6 +189,7 @@ errorBody
     | breakExpression
     | returnExpression
     | returnEmptyExpression
+    | NEWLINE
     ;
 
 
@@ -197,6 +199,7 @@ mapDefine
 
 mapEntry
     : expression COLON expression
+    | NEWLINE
     ;
 
 reserveExp
